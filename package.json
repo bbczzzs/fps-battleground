@@ -1,0 +1,20 @@
+{
+  "name": "fps-game",
+  "version": "1.0.0",
+  "description": "A high-performance 3D first-person shooter game",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "three": "^0.160.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.160.0",
+    "terser": "^5.44.1",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.10"
+  }
+}

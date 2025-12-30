@@ -432,10 +432,10 @@ export class Terrain {
   }
 
   private createBillboards(): void {
-    // Billboard 1 - Left mountain (facing center)
-    this.createBillboard(-60, 80, Math.PI * 0.25);
-    // Billboard 2 - Right mountain (facing center)
-    this.createBillboard(60, -80, Math.PI * 1.25);
+    // Billboard 1 - Left mountain peak (facing player spawn)
+    this.createBillboard(-55, 45, Math.PI * 0);
+    // Billboard 2 - Right mountain peak (facing player spawn)
+    this.createBillboard(55, 45, Math.PI * 0);
   }
   
   private createBillboard(x: number, z: number, rotation: number): void {

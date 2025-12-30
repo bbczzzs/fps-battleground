@@ -433,9 +433,9 @@ export class Terrain {
 
   private createBillboards(): void {
     // Billboard 1 - Left hill peak (visible from spawn)
-    this.createBillboard(-45, 55, Math.PI * 0, '/images/billboard1.jpg');
+    this.createBillboard(-45, 55, Math.PI, '/images/billboard1.jpg');
     // Billboard 2 - Right hill peak (visible from spawn)
-    this.createBillboard(50, 55, Math.PI * 0, '/images/billboard2.jpg');
+    this.createBillboard(50, 55, Math.PI, '/images/billboard2.jpg');
   }
   
   private createBillboard(x: number, z: number, rotation: number, imagePath: string): void {

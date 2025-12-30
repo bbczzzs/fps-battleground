@@ -1,8 +1,10 @@
 import { Game } from './game/Game';
+import { MobileControls } from './utils/MobileControls';
 
 // Initialize the game when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
   const game = new Game();
+  const isMobile = MobileControls.isMobile();
   
   // New landing page
   const landingPage = document.getElementById('landing-page');
@@ -11,6 +13,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // Old start screen (fallback)
   const startScreen = document.getElementById('start-screen');
   const startBtn = document.getElementById('start-btn');
+  
+  // Update button text for mobile
+  if (isMobile && deployBtn) {
+    deployBtn.innerHTML = '<span><span class="btn-icon">▶</span>TAP TO PLAY</span>';
+  }
   
   // New deploy button handler
   deployBtn?.addEventListener('click', () => {
@@ -21,6 +28,12 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => {
         landingPage.remove();
         startScreen?.remove();
+        
+        // Request fullscreen on mobile for better experience
+        if (isMobile) {
+          document.documentElement.requestFullscreen?.().catch(() => {});
+        }
+        
         game.start();
       }, 500);
     }

@@ -42,6 +42,18 @@ export class Player {
 
     this.camera.quaternion.setFromEuler(this.euler);
   }
+  
+  // Mobile touch look
+  public applyMobileLook(deltaX: number, deltaY: number): void {
+    this.euler.setFromQuaternion(this.camera.quaternion);
+    this.euler.y -= deltaX * this.mouseSensitivity * 5;
+    this.euler.x -= deltaY * this.mouseSensitivity * 5;
+
+    // Clamp vertical look
+    this.euler.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.euler.x));
+
+    this.camera.quaternion.setFromEuler(this.euler);
+  }
 
   public update(
     delta: number, 

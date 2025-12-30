@@ -1,3 +1,5 @@
+import { MobileControls } from './MobileControls';
+
 export class InputManager {
   public keys = {
     forward: false,
@@ -14,8 +16,18 @@ export class InputManager {
   public isAiming = false; // Right-click scope/ADS
   public isReloading = false;
   public interactPressed = false; // Single press detection
+  
+  // Mobile controls
+  public mobileControls: MobileControls | null = null;
+  public isMobile = false;
 
   constructor() {
+    this.isMobile = MobileControls.isMobile();
+    
+    if (this.isMobile) {
+      this.mobileControls = new MobileControls();
+    }
+    
     this.setupEventListeners();
   }
 
@@ -27,6 +39,47 @@ export class InputManager {
     // Mouse events
     document.addEventListener('mousedown', (e) => this.onMouseDown(e));
     document.addEventListener('mouseup', (e) => this.onMouseUp(e));
+  }
+  
+  // Call this every frame to sync mobile input
+  public updateMobileInput(): void {
+    if (!this.mobileControls) return;
+    
+    const mc = this.mobileControls;
+    
+    // Movement from joystick
+    this.keys.forward = mc.moveY > 0.3;
+    this.keys.backward = mc.moveY < -0.3;
+    this.keys.left = mc.moveX < -0.3;
+    this.keys.right = mc.moveX > 0.3;
+    
+    // Actions
+    this.isMouseDown = mc.shootPressed;
+    this.isAiming = mc.aimPressed;
+    this.keys.jump = mc.jumpPressed;
+    
+    if (mc.reloadPressed) {
+      this.isReloading = true;
+      mc.reloadPressed = false;
+    }
+    
+    if (mc.interactPressed) {
+      this.interactPressed = true;
+      mc.interactPressed = false;
+    }
+  }
+  
+  // Get mobile look delta (for camera rotation)
+  public getMobileLookDelta(): { x: number, y: number } {
+    if (!this.mobileControls) return { x: 0, y: 0 };
+    
+    const delta = {
+      x: this.mobileControls.lookX,
+      y: this.mobileControls.lookY
+    };
+    
+    this.mobileControls.resetLookDelta();
+    return delta;
   }
 
   private onKeyDown(event: KeyboardEvent): void {

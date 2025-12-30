@@ -178,20 +178,24 @@ export class Game {
   public start(): void {
     this.isRunning = true;
     
-    // Lock pointer for FPS controls
-    document.body.requestPointerLock();
-    
-    document.addEventListener('pointerlockchange', () => {
-      if (document.pointerLockElement !== document.body) {
-        this.pause();
-      }
-    });
+    // Lock pointer for FPS controls (desktop only)
+    if (!this.inputManager.isMobile) {
+      document.body.requestPointerLock();
+      
+      document.addEventListener('pointerlockchange', () => {
+        if (document.pointerLockElement !== document.body) {
+          this.pause();
+        }
+      });
+    }
 
     // Start game loop
     this.gameLoop();
   }
 
   private pause(): void {
+    // Don't pause on mobile (no pointer lock)
+    if (this.inputManager.isMobile) return;
     this.isRunning = false;
   }
 
@@ -202,6 +206,15 @@ export class Game {
     }
 
     const delta = Math.min(this.clock.getDelta(), 0.1);
+    
+    // Update mobile input each frame
+    this.inputManager.updateMobileInput();
+    
+    // Apply mobile look
+    if (this.inputManager.isMobile && !this.playerVehicle) {
+      const lookDelta = this.inputManager.getMobileLookDelta();
+      this.player.applyMobileLook(lookDelta.x, lookDelta.y);
+    }
 
     // Check for vehicle interaction
     this.handleVehicleInteraction();

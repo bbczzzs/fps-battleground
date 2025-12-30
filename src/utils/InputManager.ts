@@ -11,6 +11,7 @@ export class InputManager {
   };
   
   public isMouseDown = false;
+  public isAiming = false; // Right-click scope/ADS
   public isReloading = false;
   public interactPressed = false; // Single press detection
 
@@ -96,11 +97,17 @@ export class InputManager {
     if (event.button === 0) {
       this.isMouseDown = true;
     }
+    if (event.button === 2) {
+      this.isAiming = true;
+    }
   }
 
   private onMouseUp(event: MouseEvent): void {
     if (event.button === 0) {
       this.isMouseDown = false;
+    }
+    if (event.button === 2) {
+      this.isAiming = false;
     }
   }
 

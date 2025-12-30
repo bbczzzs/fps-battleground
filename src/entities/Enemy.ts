@@ -33,6 +33,10 @@ export class Enemy {
   private hitTimer = 0;
   private deathTimer = 0;
   private isDying = false;
+  
+  // Terrain and collision
+  private getTerrainHeight: ((x: number, z: number) => number) | null = null;
+  private colliders: THREE.Box3[] = [];
 
   constructor(scene: THREE.Scene, position: THREE.Vector3, type: EnemyType = 'rifle') {
     this.scene = scene;
@@ -141,6 +145,16 @@ export class Enemy {
 
     return group;
   }
+  
+  // Set terrain height function for ground following
+  public setTerrainHeightFunction(fn: (x: number, z: number) => number): void {
+    this.getTerrainHeight = fn;
+  }
+  
+  // Set colliders for obstacle avoidance
+  public setColliders(colliders: THREE.Box3[]): void {
+    this.colliders = colliders;
+  }
 
   private createWeaponMesh(): THREE.Group {
     const weapon = new THREE.Group();
@@ -184,12 +198,84 @@ export class Enemy {
     if (distance > attackRange) {
       direction.normalize();
       const moveSpeed = this.isHit ? this.speed * 0.3 : this.speed;
-      this.mesh.position.x += direction.x * moveSpeed * delta;
-      this.mesh.position.z += direction.z * moveSpeed * delta;
+      
+      // Calculate new position
+      const newX = this.mesh.position.x + direction.x * moveSpeed * delta;
+      const newZ = this.mesh.position.z + direction.z * moveSpeed * delta;
+      
+      // Check for collisions with buildings/obstacles
+      const testBox = new THREE.Box3().setFromCenterAndSize(
+        new THREE.Vector3(newX, this.mesh.position.y + 1, newZ),
+        new THREE.Vector3(1, 2, 1)
+      );
+      
+      let canMove = true;
+      for (const collider of this.colliders) {
+        if (testBox.intersectsBox(collider)) {
+          canMove = false;
+          break;
+        }
+      }
+      
+      if (canMove) {
+        this.mesh.position.x = newX;
+        this.mesh.position.z = newZ;
+      } else {
+        // Try to move around obstacle - slide along it
+        const slideX = this.mesh.position.x + direction.x * moveSpeed * delta;
+        const slideZ = this.mesh.position.z;
+        const testBoxX = new THREE.Box3().setFromCenterAndSize(
+          new THREE.Vector3(slideX, this.mesh.position.y + 1, slideZ),
+          new THREE.Vector3(1, 2, 1)
+        );
+        
+        let canSlideX = true;
+        for (const collider of this.colliders) {
+          if (testBoxX.intersectsBox(collider)) {
+            canSlideX = false;
+            break;
+          }
+        }
+        
+        if (canSlideX) {
+          this.mesh.position.x = slideX;
+        } else {
+          // Try Z slide
+          const testBoxZ = new THREE.Box3().setFromCenterAndSize(
+            new THREE.Vector3(this.mesh.position.x, this.mesh.position.y + 1, this.mesh.position.z + direction.z * moveSpeed * delta),
+            new THREE.Vector3(1, 2, 1)
+          );
+          
+          let canSlideZ = true;
+          for (const collider of this.colliders) {
+            if (testBoxZ.intersectsBox(collider)) {
+              canSlideZ = false;
+              break;
+            }
+          }
+          
+          if (canSlideZ) {
+            this.mesh.position.z += direction.z * moveSpeed * delta;
+          }
+        }
+      }
+      
+      // Follow terrain height
+      if (this.getTerrainHeight) {
+        const groundHeight = this.getTerrainHeight(this.mesh.position.x, this.mesh.position.z);
+        this.mesh.position.y = groundHeight;
+      }
+      
       this.walkCycle += delta * this.speed * 2;
       this.animateWalk();
     } else {
       this.resetPose();
+      
+      // Still follow terrain when stationary
+      if (this.getTerrainHeight) {
+        const groundHeight = this.getTerrainHeight(this.mesh.position.x, this.mesh.position.z);
+        this.mesh.position.y = groundHeight;
+      }
     }
 
     this.mesh.lookAt(playerPosition.x, this.mesh.position.y, playerPosition.z);

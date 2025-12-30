@@ -150,18 +150,27 @@ export class Game {
 
   private spawnEnemies(): void {
     const enemyTypes: EnemyType[] = ['rifle', 'smg', 'heavy'];
+    const colliders = this.terrain.getColliders();
     
     // Spawn initial wave of enemies
     for (let i = 0; i < 8; i++) {
       const angle = Math.random() * Math.PI * 2;
       const distance = 30 + Math.random() * 30;
       const type = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
+      const x = Math.cos(angle) * distance;
+      const z = Math.sin(angle) * distance;
+      const y = this.terrain.getHeightAt(x, z);
       
       const enemy = new Enemy(
         this.scene,
-        new THREE.Vector3(Math.cos(angle) * distance, 0, Math.sin(angle) * distance),
+        new THREE.Vector3(x, y, z),
         type
       );
+      
+      // Give enemy terrain and collision info
+      enemy.setTerrainHeightFunction((ex: number, ez: number) => this.terrain.getHeightAt(ex, ez));
+      enemy.setColliders(colliders);
+      
       this.enemies.push(enemy);
     }
   }
@@ -235,7 +244,7 @@ export class Game {
     } else {
       this.weapon.show();
     }
-    this.weapon.update(delta);
+    this.weapon.update(delta, this.inputManager.isAiming);
 
     // Update world systems
     this.helicopters.forEach(h => h.update(delta));
@@ -367,12 +376,20 @@ export class Game {
               const distance = 35 + Math.random() * 25;
               const types: EnemyType[] = ['rifle', 'smg', 'heavy'];
               const type = types[Math.floor(Math.random() * types.length)];
+              const x = Math.cos(angle) * distance;
+              const z = Math.sin(angle) * distance;
+              const y = this.terrain.getHeightAt(x, z);
               
               const newEnemy = new Enemy(
                 this.scene,
-                new THREE.Vector3(Math.cos(angle) * distance, 0, Math.sin(angle) * distance),
+                new THREE.Vector3(x, y, z),
                 type
               );
+              
+              // Give new enemy terrain and collision info
+              newEnemy.setTerrainHeightFunction((ex: number, ez: number) => this.terrain.getHeightAt(ex, ez));
+              newEnemy.setColliders(this.terrain.getColliders());
+              
               this.enemies.push(newEnemy);
             }, 2000 + Math.random() * 2000);
           }

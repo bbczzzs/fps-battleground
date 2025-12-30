@@ -5,6 +5,7 @@ export class Weapon {
   private camera: THREE.PerspectiveCamera;
   private scene: THREE.Scene;
   private mesh: THREE.Group;
+  private scopeOverlay: HTMLDivElement | null = null;
   private currentAmmo = 30;
   private reserveAmmo = 90;
   private maxAmmo = 30;
@@ -17,12 +18,99 @@ export class Weapon {
   // Weapon recoil
   private recoilAmount = 0;
   private recoilRecovery = 10;
+  
+  // ADS (Aim Down Sights)
+  private isAiming = false;
+  private defaultFOV = 75;
+  private aimFOV = 40;
+  private defaultPosition = new THREE.Vector3(0.25, -0.2, -0.5);
+  private aimPosition = new THREE.Vector3(0, -0.12, -0.35);
+  private aimTransition = 0; // 0 = hip fire, 1 = fully aimed
 
   constructor(camera: THREE.PerspectiveCamera, scene: THREE.Scene) {
     this.camera = camera;
     this.scene = scene;
     this.mesh = this.createWeaponMesh();
     camera.add(this.mesh);
+    this.createScopeOverlay();
+    
+    // Prevent context menu on right-click
+    document.addEventListener('contextmenu', (e) => e.preventDefault());
+  }
+  
+  private createScopeOverlay(): void {
+    this.scopeOverlay = document.createElement('div');
+    this.scopeOverlay.id = 'scope-overlay';
+    this.scopeOverlay.innerHTML = `
+      <div class="scope-circle"></div>
+      <div class="scope-crosshair-h"></div>
+      <div class="scope-crosshair-v"></div>
+      <div class="scope-vignette"></div>
+    `;
+    this.scopeOverlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 50;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    `;
+    
+    const style = document.createElement('style');
+    style.textContent = `
+      .scope-circle {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 400px;
+        height: 400px;
+        border: 3px solid rgba(0, 255, 0, 0.8);
+        border-radius: 50%;
+        box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.85);
+      }
+      .scope-crosshair-h {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 380px;
+        height: 2px;
+        background: linear-gradient(90deg, 
+          rgba(0,255,0,0.8) 0%, 
+          transparent 45%, 
+          transparent 55%, 
+          rgba(0,255,0,0.8) 100%
+        );
+      }
+      .scope-crosshair-v {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 2px;
+        height: 380px;
+        background: linear-gradient(180deg, 
+          rgba(0,255,0,0.8) 0%, 
+          transparent 45%, 
+          transparent 55%, 
+          rgba(0,255,0,0.8) 100%
+        );
+      }
+      .scope-vignette {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, transparent 30%, rgba(0,0,0,0.3) 100%);
+      }
+    `;
+    document.head.appendChild(style);
+    document.body.appendChild(this.scopeOverlay);
   }
 
   private createWeaponMesh(): THREE.Group {
@@ -78,7 +166,24 @@ export class Weapon {
     return group;
   }
 
-  public update(delta: number): void {
+  public update(delta: number, aiming: boolean = false): void {
+    // Update aiming state
+    this.isAiming = aiming && !this.isReloading;
+    
+    // Smooth aim transition
+    const targetTransition = this.isAiming ? 1 : 0;
+    this.aimTransition += (targetTransition - this.aimTransition) * delta * 12;
+    
+    // Update FOV based on aim
+    const targetFOV = this.isAiming ? this.aimFOV : this.defaultFOV;
+    this.camera.fov += (targetFOV - this.camera.fov) * delta * 12;
+    this.camera.updateProjectionMatrix();
+    
+    // Update scope overlay
+    if (this.scopeOverlay) {
+      this.scopeOverlay.style.opacity = (this.aimTransition * 0.9).toString();
+    }
+    
     // Handle reload
     if (this.isReloading) {
       this.reloadTimer -= delta;
@@ -91,22 +196,35 @@ export class Weapon {
       }
     }
 
-    // Recoil recovery
+    // Recoil recovery (faster when aiming)
+    const recoilRecoveryMult = this.isAiming ? 1.5 : 1;
     if (this.recoilAmount > 0) {
-      this.recoilAmount -= this.recoilRecovery * delta;
+      this.recoilAmount -= this.recoilRecovery * recoilRecoveryMult * delta;
       this.recoilAmount = Math.max(0, this.recoilAmount);
     }
 
+    // Interpolate weapon position based on aim state
+    const targetPos = this.defaultPosition.clone().lerp(this.aimPosition, this.aimTransition);
+    
     // Apply recoil to weapon position
-    this.mesh.position.z = -0.5 + this.recoilAmount * 0.1;
+    targetPos.z += this.recoilAmount * 0.1;
     this.mesh.rotation.x = -this.recoilAmount * 0.1;
 
-    // Subtle weapon sway based on mouse movement
-    const targetX = 0.25 + Math.sin(Date.now() * 0.002) * 0.005;
-    const targetY = -0.2 + Math.sin(Date.now() * 0.003) * 0.003;
+    // Subtle weapon sway (reduced when aiming)
+    const swayMult = 1 - this.aimTransition * 0.8;
+    const targetX = targetPos.x + Math.sin(Date.now() * 0.002) * 0.005 * swayMult;
+    const targetY = targetPos.y + Math.sin(Date.now() * 0.003) * 0.003 * swayMult;
     
-    this.mesh.position.x += (targetX - this.mesh.position.x) * 0.1;
-    this.mesh.position.y += (targetY - this.mesh.position.y) * 0.1;
+    this.mesh.position.x += (targetX - this.mesh.position.x) * 0.15;
+    this.mesh.position.y += (targetY - this.mesh.position.y) * 0.15;
+    this.mesh.position.z += (targetPos.z - this.mesh.position.z) * 0.15;
+    
+    // Hide weapon body when fully aiming (to see scope better)
+    if (this.aimTransition > 0.8) {
+      this.mesh.visible = false;
+    } else if (!this.isReloading) {
+      this.mesh.visible = true;
+    }
   }
 
   public canShoot(): boolean {
@@ -124,7 +242,7 @@ export class Weapon {
 
     this.lastShotTime = performance.now();
     this.currentAmmo--;
-    this.recoilAmount = 1;
+    this.recoilAmount = this.isAiming ? 0.5 : 1; // Less recoil when aiming
 
     // Get camera world position and direction
     const position = new THREE.Vector3();
@@ -133,8 +251,8 @@ export class Weapon {
     const direction = new THREE.Vector3();
     this.camera.getWorldDirection(direction);
 
-    // Add slight spread
-    const spread = 0.02;
+    // Add spread (much less when aiming)
+    const spread = this.isAiming ? 0.005 : 0.02;
     direction.x += (Math.random() - 0.5) * spread;
     direction.y += (Math.random() - 0.5) * spread;
     direction.z += (Math.random() - 0.5) * spread;

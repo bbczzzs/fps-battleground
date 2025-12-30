@@ -2,195 +2,126 @@ import * as THREE from 'three';
 
 export class ParticleSystem {
   private scene: THREE.Scene;
-  private dustParticles!: THREE.Points;
-  private smokeColumns: THREE.Points[] = [];
+  private dust!: THREE.Points;
+  private smoke: THREE.Points[] = [];
 
   constructor(scene: THREE.Scene) {
     this.scene = scene;
-    this.createDustParticles();
-    this.createSmokeColumns();
+    this.createDust();
+    this.createSmoke();
   }
 
-  private createDustParticles(): void {
-    const particleCount = 500;
-    const geometry = new THREE.BufferGeometry();
-    const positions = new Float32Array(particleCount * 3);
-    const velocities = new Float32Array(particleCount * 3);
+  private createDust(): void {
+    const count = 300;
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(count * 3);
+    const vel = new Float32Array(count * 3);
 
-    for (let i = 0; i < particleCount; i++) {
-      positions[i * 3] = (Math.random() - 0.5) * 200;
-      positions[i * 3 + 1] = Math.random() * 10;
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 200;
-
-      velocities[i * 3] = (Math.random() - 0.5) * 2;
-      velocities[i * 3 + 1] = Math.random() * 0.5;
-      velocities[i * 3 + 2] = (Math.random() - 0.5) * 2;
+    for (let i = 0; i < count; i++) {
+      pos[i * 3] = (Math.random() - 0.5) * 200;
+      pos[i * 3 + 1] = Math.random() * 8;
+      pos[i * 3 + 2] = (Math.random() - 0.5) * 200;
+      vel[i * 3] = (Math.random() - 0.5) * 1.5;
+      vel[i * 3 + 1] = Math.random() * 0.3;
+      vel[i * 3 + 2] = (Math.random() - 0.5) * 1.5;
     }
 
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute('velocity', new THREE.BufferAttribute(velocities, 3));
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('velocity', new THREE.BufferAttribute(vel, 3));
 
-    const material = new THREE.PointsMaterial({
-      color: 0xc9a66a,
-      size: 0.3,
-      transparent: true,
-      opacity: 0.4,
-      sizeAttenuation: true
-    });
-
-    this.dustParticles = new THREE.Points(geometry, material);
-    this.scene.add(this.dustParticles);
+    this.dust = new THREE.Points(geo, new THREE.PointsMaterial({
+      color: 0xb89a6a, size: 0.25, transparent: true, opacity: 0.35
+    }));
+    this.scene.add(this.dust);
   }
 
-  private createSmokeColumns(): void {
-    const smokePositions = [
-      { x: 45, z: 45 },
-      { x: -50, z: 35 },
-      { x: 60, z: -45 },
-      { x: -70, z: -20 },
-    ];
+  private createSmoke(): void {
+    const spots = [[45, 45], [-50, 35], [60, -45], [-70, -20]];
+    spots.forEach(([x, z]) => {
+      const count = 60;
+      const geo = new THREE.BufferGeometry();
+      const pos = new Float32Array(count * 3);
 
-    smokePositions.forEach(pos => {
-      const smoke = this.createSmokeColumn(pos.x, pos.z);
-      this.smokeColumns.push(smoke);
-      this.scene.add(smoke);
+      for (let i = 0; i < count; i++) {
+        const h = (i / count) * 25;
+        pos[i * 3] = x + (Math.random() - 0.5) * h * 0.25;
+        pos[i * 3 + 1] = h;
+        pos[i * 3 + 2] = z + (Math.random() - 0.5) * h * 0.25;
+      }
+
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      const s = new THREE.Points(geo, new THREE.PointsMaterial({
+        color: 0x444444, size: 2.5, transparent: true, opacity: 0.4
+      }));
+      this.smoke.push(s);
+      this.scene.add(s);
     });
-  }
-
-  private createSmokeColumn(x: number, z: number): THREE.Points {
-    const particleCount = 100;
-    const geometry = new THREE.BufferGeometry();
-    const positions = new Float32Array(particleCount * 3);
-    const sizes = new Float32Array(particleCount);
-    const alphas = new Float32Array(particleCount);
-
-    for (let i = 0; i < particleCount; i++) {
-      const height = (i / particleCount) * 30;
-      const spread = height * 0.3;
-      
-      positions[i * 3] = x + (Math.random() - 0.5) * spread;
-      positions[i * 3 + 1] = height;
-      positions[i * 3 + 2] = z + (Math.random() - 0.5) * spread;
-
-      sizes[i] = 1 + (height / 30) * 4;
-      alphas[i] = 1 - (height / 30);
-    }
-
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
-
-    const material = new THREE.PointsMaterial({
-      color: 0x333333,
-      size: 3,
-      transparent: true,
-      opacity: 0.5,
-      sizeAttenuation: true
-    });
-
-    return new THREE.Points(geometry, material);
   }
 
   public update(delta: number): void {
-    // Animate dust particles (wind effect)
-    const positions = this.dustParticles.geometry.attributes.position.array as Float32Array;
-    const velocities = this.dustParticles.geometry.attributes.velocity.array as Float32Array;
+    const pos = this.dust.geometry.attributes.position.array as Float32Array;
+    const vel = this.dust.geometry.attributes.velocity.array as Float32Array;
 
-    for (let i = 0; i < positions.length; i += 3) {
-      positions[i] += velocities[i] * delta;
-      positions[i + 1] += velocities[i + 1] * delta;
-      positions[i + 2] += velocities[i + 2] * delta;
-
-      // Reset particles that go too far
-      if (positions[i] > 100) positions[i] = -100;
-      if (positions[i] < -100) positions[i] = 100;
-      if (positions[i + 1] > 10) positions[i + 1] = 0;
-      if (positions[i + 2] > 100) positions[i + 2] = -100;
-      if (positions[i + 2] < -100) positions[i + 2] = 100;
+    for (let i = 0; i < pos.length; i += 3) {
+      pos[i] += vel[i] * delta;
+      pos[i + 1] += vel[i + 1] * delta;
+      pos[i + 2] += vel[i + 2] * delta;
+      if (Math.abs(pos[i]) > 100) pos[i] *= -0.9;
+      if (pos[i + 1] > 8) pos[i + 1] = 0;
+      if (Math.abs(pos[i + 2]) > 100) pos[i + 2] *= -0.9;
     }
+    this.dust.geometry.attributes.position.needsUpdate = true;
 
-    this.dustParticles.geometry.attributes.position.needsUpdate = true;
-
-    // Animate smoke columns
-    this.smokeColumns.forEach(smoke => {
-      const pos = smoke.geometry.attributes.position.array as Float32Array;
-      for (let i = 0; i < pos.length; i += 3) {
-        pos[i] += (Math.random() - 0.5) * 0.1;
-        pos[i + 1] += delta * 2;
-        pos[i + 2] += (Math.random() - 0.5) * 0.1;
-
-        if (pos[i + 1] > 30) {
-          pos[i + 1] = 0;
-        }
+    this.smoke.forEach(s => {
+      const p = s.geometry.attributes.position.array as Float32Array;
+      for (let i = 1; i < p.length; i += 3) {
+        p[i] += delta * 1.5;
+        if (p[i] > 25) p[i] = 0;
       }
-      smoke.geometry.attributes.position.needsUpdate = true;
+      s.geometry.attributes.position.needsUpdate = true;
     });
   }
 
   public createExplosion(position: THREE.Vector3): void {
-    const particleCount = 50;
-    const geometry = new THREE.BufferGeometry();
-    const positions = new Float32Array(particleCount * 3);
-    const velocities: THREE.Vector3[] = [];
+    const count = 40;
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(count * 3);
+    const vel = Array.from({ length: count }, () => new THREE.Vector3(
+      (Math.random() - 0.5) * 18, Math.random() * 12, (Math.random() - 0.5) * 18
+    ));
 
-    for (let i = 0; i < particleCount; i++) {
-      positions[i * 3] = position.x;
-      positions[i * 3 + 1] = position.y;
-      positions[i * 3 + 2] = position.z;
-
-      velocities.push(new THREE.Vector3(
-        (Math.random() - 0.5) * 20,
-        Math.random() * 15,
-        (Math.random() - 0.5) * 20
-      ));
+    for (let i = 0; i < count; i++) {
+      pos[i * 3] = position.x;
+      pos[i * 3 + 1] = position.y;
+      pos[i * 3 + 2] = position.z;
     }
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
 
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    const mat = new THREE.PointsMaterial({ color: 0xff5500, size: 0.5, transparent: true });
+    const exp = new THREE.Points(geo, mat);
+    this.scene.add(exp);
 
-    const material = new THREE.PointsMaterial({
-      color: 0xff6600,
-      size: 0.5,
-      transparent: true,
-      opacity: 1
-    });
-
-    const explosion = new THREE.Points(geometry, material);
-    this.scene.add(explosion);
-
-    // Animate explosion
-    let time = 0;
-    const animate = () => {
-      time += 0.016;
-      const pos = explosion.geometry.attributes.position.array as Float32Array;
-
-      for (let i = 0; i < particleCount; i++) {
-        pos[i * 3] += velocities[i].x * 0.016;
-        pos[i * 3 + 1] += velocities[i].y * 0.016;
-        pos[i * 3 + 2] += velocities[i].z * 0.016;
-        velocities[i].y -= 20 * 0.016; // Gravity
+    let t = 0;
+    const anim = () => {
+      t += 0.016;
+      const p = exp.geometry.attributes.position.array as Float32Array;
+      for (let i = 0; i < count; i++) {
+        p[i * 3] += vel[i].x * 0.016;
+        p[i * 3 + 1] += vel[i].y * 0.016;
+        p[i * 3 + 2] += vel[i].z * 0.016;
+        vel[i].y -= 15 * 0.016;
       }
-
-      explosion.geometry.attributes.position.needsUpdate = true;
-      (explosion.material as THREE.PointsMaterial).opacity = 1 - time;
-
-      if (time < 1) {
-        requestAnimationFrame(animate);
-      } else {
-        this.scene.remove(explosion);
-        geometry.dispose();
-        material.dispose();
-      }
+      exp.geometry.attributes.position.needsUpdate = true;
+      mat.opacity = 1 - t;
+      t < 1 ? requestAnimationFrame(anim) : (this.scene.remove(exp), geo.dispose(), mat.dispose());
     };
-    animate();
+    anim();
   }
 
   public createMuzzleFlash(position: THREE.Vector3): void {
-    const flash = new THREE.PointLight(0xffaa00, 5, 5);
-    flash.position.copy(position);
-    this.scene.add(flash);
-
-    setTimeout(() => {
-      this.scene.remove(flash);
-      flash.dispose();
-    }, 50);
+    const f = new THREE.PointLight(0xffaa00, 4, 4);
+    f.position.copy(position);
+    this.scene.add(f);
+    setTimeout(() => (this.scene.remove(f), f.dispose()), 40);
   }
 }

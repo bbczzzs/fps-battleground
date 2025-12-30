@@ -29,6 +29,10 @@ document.addEventListener('DOMContentLoaded', () => {
         landingPage.remove();
         startScreen?.remove();
         
+        // Show game vignette overlay
+        const vignette = document.getElementById('game-vignette');
+        if (vignette) vignette.style.display = 'block';
+        
         // Request fullscreen on mobile for better experience
         if (isMobile) {
           document.documentElement.requestFullscreen?.().catch(() => {});

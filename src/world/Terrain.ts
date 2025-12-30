@@ -17,6 +17,8 @@ export class Terrain {
     this.createIndustrialZone();
     this.createForest();
     this.createLake();
+    this.createRiver();
+    this.createMountains();
     this.createScatteredCover();
     this.createAmbientDetails();
     this.createBillboards();
@@ -376,6 +378,293 @@ export class Terrain {
       rock.castShadow = true;
       this.scene.add(rock);
     }
+  }
+
+  private createRiver(): void {
+    const waterMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x2a6a9a, 
+      metalness: 0.9, 
+      roughness: 0.1, 
+      transparent: true, 
+      opacity: 0.8 
+    });
+
+    // Create winding river using multiple segments
+    const riverPoints = [
+      { x: 100, z: -150 },
+      { x: 90, z: -100 },
+      { x: 80, z: -50 },
+      { x: 95, z: 0 },
+      { x: 85, z: 50 },
+      { x: 100, z: 100 },
+      { x: 90, z: 150 }
+    ];
+
+    // Create river segments
+    for (let i = 0; i < riverPoints.length - 1; i++) {
+      const p1 = riverPoints[i];
+      const p2 = riverPoints[i + 1];
+      
+      const dx = p2.x - p1.x;
+      const dz = p2.z - p1.z;
+      const length = Math.sqrt(dx * dx + dz * dz);
+      const angle = Math.atan2(dx, dz);
+      
+      const riverSegment = new THREE.Mesh(
+        new THREE.PlaneGeometry(20, length + 10),
+        waterMaterial
+      );
+      riverSegment.rotation.x = -Math.PI / 2;
+      riverSegment.rotation.z = angle;
+      riverSegment.position.set(
+        (p1.x + p2.x) / 2,
+        -0.5,
+        (p1.z + p2.z) / 2
+      );
+      this.scene.add(riverSegment);
+    }
+
+    // Create pond connected to river
+    const pond = new THREE.Mesh(
+      new THREE.CircleGeometry(25, 32),
+      waterMaterial
+    );
+    pond.rotation.x = -Math.PI / 2;
+    pond.position.set(95, -0.5, 0);
+    this.scene.add(pond);
+
+    // Add river banks with rocks
+    for (let i = 0; i < 40; i++) {
+      const t = Math.random();
+      const idx = Math.floor(t * (riverPoints.length - 1));
+      const p1 = riverPoints[idx];
+      const p2 = riverPoints[Math.min(idx + 1, riverPoints.length - 1)];
+      
+      const x = p1.x + (p2.x - p1.x) * (t * (riverPoints.length - 1) - idx);
+      const z = p1.z + (p2.z - p1.z) * (t * (riverPoints.length - 1) - idx);
+      const side = (Math.random() > 0.5 ? 1 : -1) * (12 + Math.random() * 5);
+      
+      const rock = new THREE.Mesh(
+        new THREE.DodecahedronGeometry(0.8 + Math.random() * 1.5, 0),
+        new THREE.MeshStandardMaterial({ color: 0x6a6a6a, roughness: 0.9 })
+      );
+      rock.position.set(x + side * 0.3, 0, z + side);
+      rock.rotation.set(Math.random(), Math.random(), Math.random());
+      rock.castShadow = true;
+      this.scene.add(rock);
+    }
+
+    // Add wooden dock
+    this.createDock(85, 0);
+  }
+
+  private createDock(x: number, z: number): void {
+    const woodMaterial = new THREE.MeshStandardMaterial({ color: 0x5a4030, roughness: 0.9 });
+    const dock = new THREE.Group();
+
+    // Dock platform
+    const platform = new THREE.Mesh(new THREE.BoxGeometry(8, 0.3, 15), woodMaterial);
+    platform.position.set(0, 0.5, 0);
+    platform.castShadow = true;
+    dock.add(platform);
+
+    // Support posts
+    for (let px = -3; px <= 3; px += 2) {
+      for (let pz = -6; pz <= 6; pz += 4) {
+        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.25, 2, 8), woodMaterial);
+        post.position.set(px, -0.5, pz);
+        post.castShadow = true;
+        dock.add(post);
+      }
+    }
+
+    // Rope cleats
+    const metalMaterial = new THREE.MeshStandardMaterial({ color: 0x4a4a4a, metalness: 0.8 });
+    [-5, 5].forEach(pz => {
+      const cleat = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.3, 8), metalMaterial);
+      cleat.position.set(3.5, 0.8, pz);
+      dock.add(cleat);
+    });
+
+    dock.position.set(x, 0, z);
+    dock.rotation.y = -Math.PI / 2;
+    this.scene.add(dock);
+  }
+
+  private createMountains(): void {
+    const rockMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x6a6a6a, 
+      roughness: 0.95,
+      metalness: 0.1
+    });
+    const snowMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0xffffff, 
+      roughness: 0.8 
+    });
+    const grassMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x4a6a3a, 
+      roughness: 0.9 
+    });
+
+    // Mountain range in the back
+    const mountainPositions = [
+      { x: -120, z: -140, height: 60, radius: 35 },
+      { x: -80, z: -160, height: 80, radius: 40 },
+      { x: -40, z: -150, height: 50, radius: 30 },
+      { x: 0, z: -170, height: 70, radius: 38 },
+      { x: 50, z: -155, height: 55, radius: 32 },
+      { x: -150, z: -100, height: 45, radius: 28 },
+      { x: 150, z: -130, height: 65, radius: 35 }
+    ];
+
+    mountainPositions.forEach(mountain => {
+      this.createMountain(mountain.x, mountain.z, mountain.height, mountain.radius, rockMaterial, snowMaterial, grassMaterial);
+    });
+
+    // Add climbable hill near spawn
+    this.createClimbableHill(50, 60);
+    this.createClimbableHill(-60, 100);
+  }
+
+  private createMountain(x: number, z: number, height: number, radius: number, rockMat: THREE.Material, snowMat: THREE.Material, grassMat: THREE.Material): void {
+    const group = new THREE.Group();
+
+    // Main mountain cone
+    const coneGeo = new THREE.ConeGeometry(radius, height, 8, 4);
+    const vertices = coneGeo.attributes.position.array as Float32Array;
+    
+    // Add noise to make it look natural
+    for (let i = 0; i < vertices.length; i += 3) {
+      const y = vertices[i + 1];
+      if (y < height * 0.9) {
+        vertices[i] += (Math.random() - 0.5) * radius * 0.3;
+        vertices[i + 2] += (Math.random() - 0.5) * radius * 0.3;
+      }
+    }
+    coneGeo.computeVertexNormals();
+
+    const mountain = new THREE.Mesh(coneGeo, rockMat);
+    mountain.position.y = height / 2 - 5;
+    mountain.castShadow = true;
+    mountain.receiveShadow = true;
+    group.add(mountain);
+
+    // Snow cap
+    const snowCapGeo = new THREE.ConeGeometry(radius * 0.3, height * 0.25, 8);
+    const snowCap = new THREE.Mesh(snowCapGeo, snowMat);
+    snowCap.position.y = height - height * 0.125 - 5;
+    snowCap.castShadow = true;
+    group.add(snowCap);
+
+    // Grass at base
+    const grassRing = new THREE.Mesh(
+      new THREE.RingGeometry(radius * 0.8, radius * 1.2, 16),
+      grassMat
+    );
+    grassRing.rotation.x = -Math.PI / 2;
+    grassRing.position.y = 0.1;
+    group.add(grassRing);
+
+    // Add some rocks around base
+    for (let i = 0; i < 10; i++) {
+      const angle = (i / 10) * Math.PI * 2;
+      const dist = radius * (0.8 + Math.random() * 0.4);
+      const rock = new THREE.Mesh(
+        new THREE.DodecahedronGeometry(2 + Math.random() * 3, 0),
+        rockMat
+      );
+      rock.position.set(
+        Math.cos(angle) * dist,
+        1 + Math.random() * 2,
+        Math.sin(angle) * dist
+      );
+      rock.rotation.set(Math.random(), Math.random(), Math.random());
+      rock.castShadow = true;
+      group.add(rock);
+    }
+
+    group.position.set(x, 0, z);
+    this.scene.add(group);
+  }
+
+  private createClimbableHill(x: number, z: number): void {
+    const group = new THREE.Group();
+    const hillMaterial = new THREE.MeshStandardMaterial({ color: 0x5a7a4a, roughness: 0.9 });
+    const rockMaterial = new THREE.MeshStandardMaterial({ color: 0x7a7a7a, roughness: 0.85 });
+
+    // Create stepped hill that can be climbed
+    const levels = 5;
+    const baseRadius = 20;
+    const heightPerLevel = 4;
+
+    for (let i = 0; i < levels; i++) {
+      const levelRadius = baseRadius - i * 3;
+      const levelHeight = heightPerLevel;
+      
+      const platform = new THREE.Mesh(
+        new THREE.CylinderGeometry(levelRadius, levelRadius + 2, levelHeight, 12),
+        hillMaterial
+      );
+      platform.position.y = i * heightPerLevel + heightPerLevel / 2;
+      platform.castShadow = true;
+      platform.receiveShadow = true;
+      group.add(platform);
+
+      // Add rocks as steps
+      for (let r = 0; r < 6; r++) {
+        const angle = (r / 6) * Math.PI * 2 + i * 0.5;
+        const rock = new THREE.Mesh(
+          new THREE.BoxGeometry(3, 1.5, 3),
+          rockMaterial
+        );
+        rock.position.set(
+          Math.cos(angle) * (levelRadius + 1),
+          i * heightPerLevel + 0.75,
+          Math.sin(angle) * (levelRadius + 1)
+        );
+        rock.rotation.y = angle;
+        rock.castShadow = true;
+        group.add(rock);
+
+        // Add collision for climbing
+        this.colliders.push(new THREE.Box3().setFromCenterAndSize(
+          new THREE.Vector3(
+            x + Math.cos(angle) * (levelRadius + 1),
+            i * heightPerLevel + 0.75,
+            z + Math.sin(angle) * (levelRadius + 1)
+          ),
+          new THREE.Vector3(3, 1.5, 3)
+        ));
+      }
+    }
+
+    // Top platform with flag
+    const topPlatform = new THREE.Mesh(
+      new THREE.CylinderGeometry(6, 8, 2, 12),
+      new THREE.MeshStandardMaterial({ color: 0x4a5a3a })
+    );
+    topPlatform.position.y = levels * heightPerLevel + 1;
+    topPlatform.castShadow = true;
+    group.add(topPlatform);
+
+    // Flag pole
+    const pole = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.15, 0.15, 8, 8),
+      new THREE.MeshStandardMaterial({ color: 0x4a4a4a })
+    );
+    pole.position.y = levels * heightPerLevel + 6;
+    group.add(pole);
+
+    // Flag
+    const flag = new THREE.Mesh(
+      new THREE.PlaneGeometry(4, 2.5),
+      new THREE.MeshStandardMaterial({ color: 0xff4444, side: THREE.DoubleSide })
+    );
+    flag.position.set(2, levels * heightPerLevel + 8, 0);
+    group.add(flag);
+
+    group.position.set(x, 0, z);
+    this.scene.add(group);
   }
 
   private createScatteredCover(): void {

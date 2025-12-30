@@ -7,13 +7,24 @@ export class Player {
   private velocity: THREE.Vector3 = new THREE.Vector3();
   private direction: THREE.Vector3 = new THREE.Vector3();
   private health = 100;
+  private baseSpeed = 10;
   private moveSpeed = 10;
+  private sprintMultiplier = 1.8;
+  private crouchMultiplier = 0.5;
   private jumpForce = 8;
   private gravity = 20;
   private isGrounded = true;
   private euler: THREE.Euler = new THREE.Euler(0, 0, 0, 'YXZ');
   private mouseSensitivity = 0.002;
+  private standingHeight = 1.7;
+  private crouchHeight = 1.0;
   private playerHeight = 1.7;
+  private isCrouching = false;
+  private isSprinting = false;
+  private stamina = 100;
+  private maxStamina = 100;
+  private staminaDrainRate = 20;
+  private staminaRegenRate = 15;
   
   // Terrain height function (set by Game)
   private getTerrainHeight: ((x: number, z: number) => number) | null = null;
@@ -81,6 +92,36 @@ export class Player {
 
     const moveDirX = right.x * this.direction.x + cameraDirection.x * -this.direction.z;
     const moveDirZ = right.z * this.direction.x + cameraDirection.z * -this.direction.z;
+
+    // Handle sprint
+    const wantsSprint = input.keys.sprint && this.direction.z < 0 && !this.isCrouching;
+    if (wantsSprint && this.stamina > 0) {
+      this.isSprinting = true;
+      this.stamina -= this.staminaDrainRate * delta;
+      this.stamina = Math.max(0, this.stamina);
+    } else {
+      this.isSprinting = false;
+    }
+
+    // Regenerate stamina when not sprinting
+    if (!this.isSprinting) {
+      this.stamina += this.staminaRegenRate * delta;
+      this.stamina = Math.min(this.maxStamina, this.stamina);
+    }
+
+    // Handle crouch
+    this.isCrouching = input.keys.crouch;
+    const targetHeight = this.isCrouching ? this.crouchHeight : this.standingHeight;
+    this.playerHeight = THREE.MathUtils.lerp(this.playerHeight, targetHeight, delta * 10);
+
+    // Calculate move speed based on state
+    if (this.isSprinting) {
+      this.moveSpeed = this.baseSpeed * this.sprintMultiplier;
+    } else if (this.isCrouching) {
+      this.moveSpeed = this.baseSpeed * this.crouchMultiplier;
+    } else {
+      this.moveSpeed = this.baseSpeed;
+    }
 
     // Apply movement
     this.velocity.x = moveDirX * this.moveSpeed;
@@ -189,16 +230,32 @@ export class Player {
   }
   
   public applySpeedBoost(duration: number): void {
-    const originalSpeed = this.moveSpeed;
-    this.moveSpeed = originalSpeed * 1.5;
+    const originalBaseSpeed = this.baseSpeed;
+    this.baseSpeed = originalBaseSpeed * 1.5;
     
     setTimeout(() => {
-      this.moveSpeed = originalSpeed;
+      this.baseSpeed = originalBaseSpeed;
     }, duration * 1000);
   }
 
   public getHealth(): number {
     return this.health;
+  }
+
+  public getStamina(): number {
+    return this.stamina;
+  }
+
+  public getMaxStamina(): number {
+    return this.maxStamina;
+  }
+
+  public isCrouchingState(): boolean {
+    return this.isCrouching;
+  }
+
+  public isSprintingState(): boolean {
+    return this.isSprinting;
   }
 
   private onDeath(): void {

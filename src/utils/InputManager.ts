@@ -9,7 +9,9 @@ export class InputManager {
     jump: false,
     interact: false,
     up: false,
-    down: false
+    down: false,
+    sprint: false,
+    crouch: false
   };
   
   public isMouseDown = false;
@@ -114,6 +116,15 @@ export class InputManager {
       case 'KeyZ':
         this.keys.down = true;
         break;
+      case 'ShiftLeft':
+      case 'ShiftRight':
+        this.keys.sprint = true;
+        break;
+      case 'ControlLeft':
+      case 'ControlRight':
+      case 'KeyC':
+        this.keys.crouch = true;
+        break;
     }
   }
 
@@ -142,6 +153,15 @@ export class InputManager {
         break;
       case 'KeyZ':
         this.keys.down = false;
+        break;
+      case 'ShiftLeft':
+      case 'ShiftRight':
+        this.keys.sprint = false;
+        break;
+      case 'ControlLeft':
+      case 'ControlRight':
+      case 'KeyC':
+        this.keys.crouch = false;
         break;
     }
   }

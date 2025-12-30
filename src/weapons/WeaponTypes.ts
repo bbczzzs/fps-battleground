@@ -323,8 +323,17 @@ export class MultiWeapon {
     this.camera.fov += (targetFOV - this.camera.fov) * delta * 12;
     this.camera.updateProjectionMatrix();
     
+    // Show scope overlay only for sniper rifle
     if (this.scopeOverlay) {
-      this.scopeOverlay.style.opacity = (this.aimTransition * 0.9).toString();
+      const showScope = this.isAiming && this.currentWeaponType === WeaponType.SNIPER;
+      this.scopeOverlay.style.opacity = (showScope ? this.aimTransition * 0.95 : 0).toString();
+    }
+    
+    // Hide weapon model when looking through sniper scope
+    if (this.currentWeaponType === WeaponType.SNIPER) {
+      this.mesh.visible = !(this.isAiming && this.aimTransition > 0.8);
+    } else {
+      this.mesh.visible = true;
     }
     
     if (this.isReloading) {

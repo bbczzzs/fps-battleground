@@ -614,6 +614,34 @@
         font-size: 14px;
       }
 
+      /* Stamina Bar */
+      #stamina-bar-container {
+        width: 80px;
+        height: 10px;
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 5px;
+        margin-top: 8px;
+        position: relative;
+        border: 1px solid #444;
+      }
+      
+      #stamina-bar {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, #ffaa00, #ffdd00);
+        border-radius: 4px;
+        transition: width 0.15s;
+        box-shadow: 0 0 8px rgba(255, 200, 0, 0.5);
+      }
+      
+      #stamina-icon {
+        position: absolute;
+        right: -20px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 12px;
+      }
+
       /* Ammo Display - Bottom Right */
       #ammo-container {
         position: fixed;
@@ -1067,6 +1095,10 @@
         </svg>
         <span id="health-text">100</span>
         <span id="health-icon">❤️</span>
+      </div>
+      <div id="stamina-bar-container">
+        <div id="stamina-bar"></div>
+        <span id="stamina-icon">⚡</span>
       </div>
     </div>
     

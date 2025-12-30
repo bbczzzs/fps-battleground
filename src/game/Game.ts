@@ -175,6 +175,23 @@ export class Game {
     );
     plane.setTerrainHeightFunction((x: number, z: number) => this.terrain.getHeightAt(x, z));
     this.vehicles.push(plane);
+
+    // Spawn boats near the dock/river
+    const boat1 = new Vehicle(
+      this.scene,
+      VehicleType.BOAT,
+      new THREE.Vector3(80, -0.3, 5)
+    );
+    boat1.setTerrainHeightFunction((x: number, z: number) => this.terrain.getHeightAt(x, z));
+    this.vehicles.push(boat1);
+
+    const boat2 = new Vehicle(
+      this.scene,
+      VehicleType.BOAT,
+      new THREE.Vector3(90, -0.3, -40)
+    );
+    boat2.setTerrainHeightFunction((x: number, z: number) => this.terrain.getHeightAt(x, z));
+    this.vehicles.push(boat2);
   }
 
   private spawnEnemies(): void {
@@ -800,6 +817,22 @@ export class Game {
     const healthText = document.getElementById('health-text');
     if (healthText) {
       healthText.textContent = Math.ceil(this.player.getHealth()).toString();
+    }
+
+    // Stamina bar
+    const staminaBar = document.getElementById('stamina-bar');
+    if (staminaBar) {
+      const staminaPercent = (this.player.getStamina() / this.player.getMaxStamina()) * 100;
+      staminaBar.style.width = `${staminaPercent}%`;
+      
+      // Color based on stamina level
+      if (staminaPercent > 50) {
+        staminaBar.style.background = 'linear-gradient(90deg, #ffaa00, #ffdd00)';
+      } else if (staminaPercent > 25) {
+        staminaBar.style.background = 'linear-gradient(90deg, #ff8800, #ffaa00)';
+      } else {
+        staminaBar.style.background = 'linear-gradient(90deg, #ff4400, #ff6600)';
+      }
     }
 
     // Ammo (use multi-weapon if enabled)

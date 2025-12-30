@@ -4,7 +4,8 @@ import { InputManager } from '../utils/InputManager';
 export enum VehicleType {
   CAR = 'car',
   HELICOPTER = 'helicopter',
-  PLANE = 'plane'
+  PLANE = 'plane',
+  BOAT = 'boat'
 }
 
 export class Vehicle {
@@ -53,6 +54,12 @@ export class Vehicle {
         this.turnSpeed = 1;
         this.friction = 0.99;
         break;
+      case VehicleType.BOAT:
+        this.maxSpeed = 25;
+        this.acceleration = 12;
+        this.turnSpeed = 1.8;
+        this.friction = 0.96;
+        break;
     }
 
     this.mesh = this.createMesh();
@@ -87,6 +94,8 @@ export class Vehicle {
         return this.createHelicopterMesh(group);
       case VehicleType.PLANE:
         return this.createPlaneMesh(group);
+      case VehicleType.BOAT:
+        return this.createBoatMesh(group);
     }
     
     return group;
@@ -335,6 +344,168 @@ export class Vehicle {
     return group;
   }
 
+  private createBoatMesh(group: THREE.Group): THREE.Group {
+    const hullMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 });
+    const woodMaterial = new THREE.MeshStandardMaterial({ color: 0x8b4513, roughness: 0.8 });
+    const metalMaterial = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.7, roughness: 0.3 });
+    const seatMaterial = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.9 });
+
+    // Hull base - curved boat shape
+    const hullShape = new THREE.Shape();
+    hullShape.moveTo(-1.5, 0);
+    hullShape.quadraticCurveTo(-1.8, 2.5, 0, 4);
+    hullShape.quadraticCurveTo(1.8, 2.5, 1.5, 0);
+    hullShape.lineTo(-1.5, 0);
+
+    const extrudeSettings = {
+      depth: 1,
+      bevelEnabled: true,
+      bevelThickness: 0.2,
+      bevelSize: 0.1,
+      bevelSegments: 3
+    };
+
+    const hull = new THREE.Mesh(
+      new THREE.ExtrudeGeometry(hullShape, extrudeSettings),
+      hullMaterial
+    );
+    hull.rotation.x = -Math.PI / 2;
+    hull.rotation.z = Math.PI;
+    hull.position.set(0, 0.3, 2);
+    hull.castShadow = true;
+    group.add(hull);
+
+    // Hull bottom
+    const hullBottom = new THREE.Mesh(
+      new THREE.BoxGeometry(2.5, 0.4, 5),
+      hullMaterial
+    );
+    hullBottom.position.set(0, 0, 0);
+    hullBottom.castShadow = true;
+    group.add(hullBottom);
+
+    // Hull sides
+    [-1.2, 1.2].forEach(x => {
+      const side = new THREE.Mesh(
+        new THREE.BoxGeometry(0.15, 0.6, 5),
+        hullMaterial
+      );
+      side.position.set(x, 0.5, 0);
+      side.castShadow = true;
+      group.add(side);
+    });
+
+    // Bow (front) curve
+    const bow = new THREE.Mesh(
+      new THREE.ConeGeometry(1.3, 2, 4, 1, false, Math.PI * 0.75, Math.PI * 0.5),
+      hullMaterial
+    );
+    bow.rotation.x = Math.PI / 2;
+    bow.position.set(0, 0.3, 3.2);
+    bow.castShadow = true;
+    group.add(bow);
+
+    // Floor deck
+    const deck = new THREE.Mesh(
+      new THREE.BoxGeometry(2.2, 0.1, 4),
+      woodMaterial
+    );
+    deck.position.set(0, 0.25, 0);
+    group.add(deck);
+
+    // Seats
+    [-0.6, 0.6].forEach(x => {
+      const seat = new THREE.Mesh(
+        new THREE.BoxGeometry(0.8, 0.4, 0.6),
+        seatMaterial
+      );
+      seat.position.set(x, 0.5, -0.5);
+      seat.castShadow = true;
+      group.add(seat);
+    });
+
+    // Driver seat back
+    const seatBack = new THREE.Mesh(
+      new THREE.BoxGeometry(1.8, 0.6, 0.15),
+      seatMaterial
+    );
+    seatBack.position.set(0, 0.8, -0.85);
+    seatBack.castShadow = true;
+    group.add(seatBack);
+
+    // Steering wheel
+    const wheelBase = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.05, 0.05, 0.6, 8),
+      metalMaterial
+    );
+    wheelBase.position.set(0, 0.9, 0.2);
+    wheelBase.rotation.x = -0.4;
+    group.add(wheelBase);
+
+    const steeringWheel = new THREE.Mesh(
+      new THREE.TorusGeometry(0.2, 0.03, 8, 16),
+      metalMaterial
+    );
+    steeringWheel.position.set(0, 1.2, 0.35);
+    steeringWheel.rotation.x = -0.4;
+    group.add(steeringWheel);
+
+    // Outboard motor
+    const motor = new THREE.Group();
+    
+    const motorBody = new THREE.Mesh(
+      new THREE.BoxGeometry(0.5, 0.8, 0.6),
+      metalMaterial
+    );
+    motorBody.position.y = 0.2;
+    motor.add(motorBody);
+
+    const motorCowl = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.2, 0.3, 0.5, 8),
+      new THREE.MeshStandardMaterial({ color: 0x1a1a1a })
+    );
+    motorCowl.position.y = 0.7;
+    motor.add(motorCowl);
+
+    const motorShaft = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.08, 0.08, 1.2, 8),
+      metalMaterial
+    );
+    motorShaft.position.y = -0.4;
+    motor.add(motorShaft);
+
+    const propeller = new THREE.Mesh(
+      new THREE.BoxGeometry(0.8, 0.1, 0.15),
+      metalMaterial
+    );
+    propeller.position.y = -1;
+    propeller.name = 'boatPropeller';
+    motor.add(propeller);
+
+    motor.position.set(0, 0.3, -2.3);
+    group.add(motor);
+
+    // Cleat (rope tie)
+    [{ x: -0.9, z: 1.5 }, { x: 0.9, z: 1.5 }, { x: -0.9, z: -1.5 }, { x: 0.9, z: -1.5 }].forEach(pos => {
+      const cleat = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.05, 0.05, 0.15, 6),
+        metalMaterial
+      );
+      cleat.position.set(pos.x, 0.85, pos.z);
+      group.add(cleat);
+    });
+
+    // Red stripe decoration
+    const stripe = new THREE.Mesh(
+      new THREE.BoxGeometry(2.6, 0.1, 4.5),
+      new THREE.MeshStandardMaterial({ color: 0xcc2222 })
+    );
+    stripe.position.set(0, 0.35, 0);
+    group.add(stripe);
+
+    return group;
+  }
+
   public update(delta: number): void {
     // Animate rotating parts
     if (this.type === VehicleType.HELICOPTER) {
@@ -347,6 +518,12 @@ export class Vehicle {
     } else if (this.type === VehicleType.PLANE && this.isOccupied) {
       const propeller = this.mesh.getObjectByName('propeller');
       if (propeller) propeller.rotation.z += 30 * delta;
+    } else if (this.type === VehicleType.BOAT && this.isOccupied && Math.abs(this.speed) > 0.1) {
+      const boatProp = this.mesh.getObjectByName('boatPropeller');
+      if (boatProp) boatProp.rotation.y += this.speed * delta * 5;
+      // Slight bobbing motion
+      this.mesh.position.y = -0.3 + Math.sin(Date.now() * 0.003) * 0.1;
+      this.mesh.rotation.x = Math.sin(Date.now() * 0.002) * 0.03;
     } else if (this.type === VehicleType.CAR && this.isOccupied && Math.abs(this.speed) > 0.1) {
       this.mesh.traverse(child => {
         if (child.name === 'wheel') {
@@ -419,6 +596,11 @@ export class Vehicle {
       
       // Bank on turn
       this.mesh.rotation.z = (keys.left ? 0.4 : 0) - (keys.right ? 0.4 : 0);
+    } else if (this.type === VehicleType.BOAT) {
+      // Boat stays at water level with bobbing
+      this.mesh.position.y = -0.3;
+      // Lean into turns
+      this.mesh.rotation.z = ((keys.left ? 0.15 : 0) - (keys.right ? 0.15 : 0)) * Math.min(1, Math.abs(this.speed) / 10);
     } else {
       // Car sticks to terrain
       this.mesh.position.y = terrainY + 0.5;
@@ -470,6 +652,7 @@ export class Vehicle {
       case VehicleType.CAR: return 'Car';
       case VehicleType.HELICOPTER: return 'Helicopter';
       case VehicleType.PLANE: return 'Plane';
+      case VehicleType.BOAT: return 'Boat';
     }
   }
 
@@ -501,6 +684,8 @@ export class Vehicle {
         return new THREE.Vector3(0, 2.5, -5);
       case VehicleType.PLANE:
         return new THREE.Vector3(0, 2, -6);
+      case VehicleType.BOAT:
+        return new THREE.Vector3(0, 2, -5);
     }
   }
 

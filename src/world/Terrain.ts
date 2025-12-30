@@ -178,6 +178,7 @@ export class Terrain {
   }
   
   private createBuilding(x: number, z: number, w: number, h: number, d: number, color: number): void {
+    const groundY = this.getHeightAt(x, z);
     const group = new THREE.Group();
     const wall = new THREE.MeshStandardMaterial({ color, roughness: 0.9 });
     const building = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), wall);
@@ -195,16 +196,17 @@ export class Terrain {
       group.add(window);
     }
     
-    group.position.set(x, 0, z);
+    group.position.set(x, groundY, z);
     this.scene.add(group);
     
     this.colliders.push(new THREE.Box3().setFromCenterAndSize(
-      new THREE.Vector3(x, h/2, z),
+      new THREE.Vector3(x, groundY + h/2, z),
       new THREE.Vector3(w + 1, h + 1, d + 1)
     ));
   }
   
   private createGuardTower(x: number, z: number): void {
+    const groundY = this.getHeightAt(x, z);
     const group = new THREE.Group();
     const metal = new THREE.MeshStandardMaterial({ color: 0x4a4a4a });
     
@@ -219,16 +221,17 @@ export class Terrain {
     platform.position.y = 8;
     group.add(platform);
     
-    group.position.set(x, 0, z);
+    group.position.set(x, groundY, z);
     this.scene.add(group);
     
     this.colliders.push(new THREE.Box3().setFromCenterAndSize(
-      new THREE.Vector3(x, 5, z),
+      new THREE.Vector3(x, groundY + 5, z),
       new THREE.Vector3(5, 10, 5)
     ));
   }
   
   private createSandbagWall(x: number, z: number, length: number): void {
+    const groundY = this.getHeightAt(x, z);
     const group = new THREE.Group();
     const bag = new THREE.MeshStandardMaterial({ color: 0x8b7355, roughness: 1 });
     
@@ -241,7 +244,7 @@ export class Terrain {
       }
     }
     
-    group.position.set(x, 0, z);
+    group.position.set(x, groundY, z);
     group.rotation.y = Math.random() * Math.PI;
     this.scene.add(group);
     
@@ -262,6 +265,7 @@ export class Terrain {
   }
   
   private createCar(x: number, z: number): void {
+    const groundY = this.getHeightAt(x, z);
     const group = new THREE.Group();
     const colors = [0x8a2a2a, 0x2a4a6a, 0x3a3a3a];
     const body = new THREE.MeshStandardMaterial({ color: colors[Math.floor(Math.random() * colors.length)], metalness: 0.6, roughness: 0.4 });
@@ -283,7 +287,7 @@ export class Terrain {
       group.add(w);
     });
     
-    group.position.set(x, 0, z);
+    group.position.set(x, groundY, z);
     group.rotation.y = Math.random() * Math.PI;
     this.scene.add(group);
     
@@ -303,25 +307,27 @@ export class Terrain {
   }
   
   private createTank(x: number, z: number, r: number, h: number): void {
+    const groundY = this.getHeightAt(x, z);
     const tank = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, 16), new THREE.MeshStandardMaterial({ color: 0x7a7a7a, metalness: 0.3 }));
-    tank.position.set(x, h / 2, z);
+    tank.position.set(x, groundY + h / 2, z);
     tank.castShadow = true;
     this.scene.add(tank);
     
     this.colliders.push(new THREE.Box3().setFromCenterAndSize(
-      new THREE.Vector3(x, h / 2, z),
+      new THREE.Vector3(x, groundY + h / 2, z),
       new THREE.Vector3(r * 2 + 1, h + 1, r * 2 + 1)
     ));
   }
   
   private createContainer(x: number, z: number, color: number): void {
+    const groundY = this.getHeightAt(x, z);
     const container = new THREE.Mesh(new THREE.BoxGeometry(12, 3, 3), new THREE.MeshStandardMaterial({ color, roughness: 0.7 }));
-    container.position.set(x, 1.5, z);
+    container.position.set(x, groundY + 1.5, z);
     container.castShadow = true;
     this.scene.add(container);
     
     this.colliders.push(new THREE.Box3().setFromCenterAndSize(
-      new THREE.Vector3(x, 1.5, z),
+      new THREE.Vector3(x, groundY + 1.5, z),
       new THREE.Vector3(13, 4, 4)
     ));
   }
@@ -386,8 +392,9 @@ export class Terrain {
   }
   
   private createBarrier(x: number, z: number): void {
+    const groundY = this.getHeightAt(x, z);
     const barrier = new THREE.Mesh(new THREE.BoxGeometry(4, 1.5, 0.5), new THREE.MeshStandardMaterial({ color: 0xff6600, roughness: 0.7 }));
-    barrier.position.set(x, 0.75, z);
+    barrier.position.set(x, groundY + 0.75, z);
     barrier.rotation.y = Math.random() * Math.PI;
     barrier.castShadow = true;
     this.scene.add(barrier);

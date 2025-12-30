@@ -508,7 +508,6 @@ export class Game {
     const ticksPerDegree = 40 / 15;
     const offset = degrees * ticksPerDegree;
     const stripWidth = 400;
-    const totalWidth = 32 * 40; // 32 ticks * 40px
     
     // Center the compass and apply offset
     const centerOffset = stripWidth / 2;

@@ -420,8 +420,8 @@ export class Game {
     // Update mobile input each frame
     this.inputManager.updateMobileInput();
     
-    // Apply mobile look
-    if (this.inputManager.isMobile && !this.playerVehicle) {
+    // Apply mobile look (works in and out of vehicle)
+    if (this.inputManager.isMobile) {
       const lookDelta = this.inputManager.getMobileLookDelta();
       this.player.applyMobileLook(lookDelta.x, lookDelta.y);
     }
@@ -431,7 +431,7 @@ export class Game {
 
     // Update player or vehicle
     if (this.playerVehicle) {
-      // Player is in a vehicle - drive it
+      // Player is in a vehicle - drive it (camera follows but look is free)
       this.playerVehicle.drive(delta, this.inputManager, this.camera);
     } else {
       // Normal player movement

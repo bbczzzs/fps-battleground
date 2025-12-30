@@ -4,9 +4,9 @@ import { Enemy } from '../entities/Enemy';
 export class Minimap {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
-  private size = 200;
-  private scale = 2; // meters per pixel
-  private radarRadius = 100;
+  private size = 150;
+  private scale = 2.5; // meters per pixel
+  private radarRadius = 70;
 
   constructor() {
     this.canvas = document.createElement('canvas');
@@ -14,12 +14,12 @@ export class Minimap {
     this.canvas.height = this.size;
     this.canvas.style.cssText = `
       position: fixed;
-      top: 20px;
-      right: 20px;
-      border: 3px solid rgba(0, 255, 0, 0.6);
-      border-radius: 10px;
-      background: rgba(0, 0, 0, 0.7);
-      box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+      top: 100px;
+      left: 20px;
+      border: 2px solid rgba(0, 200, 255, 0.6);
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.6);
+      box-shadow: 0 0 15px rgba(0, 200, 255, 0.3);
       z-index: 100;
     `;
     document.body.appendChild(this.canvas);
@@ -32,7 +32,7 @@ export class Minimap {
     this.ctx.clearRect(0, 0, this.size, this.size);
     
     // Draw background circle
-    this.ctx.fillStyle = 'rgba(10, 30, 10, 0.8)';
+    this.ctx.fillStyle = 'rgba(5, 20, 30, 0.9)';
     this.ctx.beginPath();
     this.ctx.arc(this.size / 2, this.size / 2, this.radarRadius, 0, Math.PI * 2);
     this.ctx.fill();
@@ -113,46 +113,21 @@ export class Minimap {
     const centerX = this.size / 2;
     const centerY = this.size / 2;
     
-    // Player dot
-    this.ctx.fillStyle = 'rgba(0, 255, 0, 1)';
+    // Player triangle (pointing up)
+    this.ctx.fillStyle = 'rgba(0, 200, 255, 1)';
     this.ctx.beginPath();
-    this.ctx.arc(centerX, centerY, 5, 0, Math.PI * 2);
+    this.ctx.moveTo(centerX, centerY - 8);
+    this.ctx.lineTo(centerX - 5, centerY + 5);
+    this.ctx.lineTo(centerX + 5, centerY + 5);
+    this.ctx.closePath();
     this.ctx.fill();
     
-    // Direction arrow
-    this.ctx.strokeStyle = 'rgba(0, 255, 0, 1)';
-    this.ctx.lineWidth = 3;
-    this.ctx.beginPath();
-    this.ctx.moveTo(centerX, centerY);
-    this.ctx.lineTo(centerX, centerY - 15);
-    this.ctx.stroke();
-    
-    // Arrow head
-    this.ctx.beginPath();
-    this.ctx.moveTo(centerX, centerY - 15);
-    this.ctx.lineTo(centerX - 4, centerY - 10);
-    this.ctx.moveTo(centerX, centerY - 15);
-    this.ctx.lineTo(centerX + 4, centerY - 10);
-    this.ctx.stroke();
-    
     // Draw border
-    this.ctx.strokeStyle = 'rgba(0, 255, 0, 0.6)';
+    this.ctx.strokeStyle = 'rgba(0, 200, 255, 0.8)';
     this.ctx.lineWidth = 2;
     this.ctx.beginPath();
     this.ctx.arc(this.size / 2, this.size / 2, this.radarRadius, 0, Math.PI * 2);
     this.ctx.stroke();
-    
-    // Draw compass directions
-    this.ctx.fillStyle = 'rgba(0, 255, 0, 0.8)';
-    this.ctx.font = 'bold 14px Arial';
-    this.ctx.textAlign = 'center';
-    this.ctx.textBaseline = 'middle';
-    
-    const compassRadius = this.radarRadius + 15;
-    this.ctx.fillText('N', centerX, centerY - compassRadius);
-    this.ctx.fillText('S', centerX, centerY + compassRadius);
-    this.ctx.fillText('E', centerX + compassRadius, centerY);
-    this.ctx.fillText('W', centerX - compassRadius, centerY);
   }
 
   public destroy(): void {

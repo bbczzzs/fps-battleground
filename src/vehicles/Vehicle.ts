@@ -424,21 +424,23 @@ export class Vehicle {
       this.mesh.position.y = terrainY + 0.5;
     }
 
-    // Update camera to follow vehicle
-    this.updateCamera(camera);
+    // Update camera position but allow free look
+    this.updateCameraPosition(camera);
   }
 
-  private updateCamera(camera: THREE.PerspectiveCamera): void {
+  private updateCameraPosition(camera: THREE.PerspectiveCamera): void {
     const offset = this.getCameraOffset();
     
-    // Rotate offset based on vehicle rotation
-    offset.applyQuaternion(this.mesh.quaternion);
+    // Just update position relative to vehicle, don't change camera rotation
+    // This allows player to freely look around while driving
+    const vehiclePos = this.mesh.position.clone();
     
-    // Set camera position
-    camera.position.copy(this.mesh.position).add(offset);
+    // Apply offset based on vehicle's Y rotation only for position
+    const rotatedOffset = offset.clone();
+    rotatedOffset.applyAxisAngle(new THREE.Vector3(0, 1, 0), this.mesh.rotation.y);
     
-    // Look at vehicle
-    camera.lookAt(this.mesh.position);
+    // Set camera position to follow vehicle
+    camera.position.copy(vehiclePos).add(rotatedOffset);
   }
 
   public enter(): void {

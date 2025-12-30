@@ -436,6 +436,10 @@ export class Terrain {
     this.createBillboard(-45, 55, Math.PI, '/images/billboard1.jpg');
     // Billboard 2 - Right hill peak (visible from spawn)
     this.createBillboard(50, 55, Math.PI, '/images/billboard2.jpg');
+    // Billboard 3 - Left side of gap (facing spawn)
+    this.createBillboard(-35, 25, Math.PI, '/images/billboard1.jpg');
+    // Billboard 4 - Right side of gap (facing spawn)
+    this.createBillboard(40, 25, Math.PI, '/images/billboard2.jpg');
   }
   
   private createBillboard(x: number, z: number, rotation: number, imagePath: string): void {

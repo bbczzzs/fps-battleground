@@ -236,6 +236,46 @@ export class AmbientSystem {
     osc.stop(this.audioContext.currentTime + 0.2);
   }
 
+  public playPowerUpSound(): void {
+    if (!this.audioContext) return;
+
+    // Rising tone sound for power-up collection
+    const osc = this.audioContext.createOscillator();
+    const gain = this.audioContext.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(300, this.audioContext.currentTime);
+    osc.frequency.linearRampToValueAtTime(800, this.audioContext.currentTime + 0.2);
+
+    gain.gain.value = 0.15;
+    gain.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.3);
+
+    osc.connect(gain);
+    gain.connect(this.audioContext.destination);
+
+    osc.start();
+    osc.stop(this.audioContext.currentTime + 0.3);
+  }
+
+  public playGrenadeThrowSound(): void {
+    if (!this.audioContext) return;
+
+    const osc = this.audioContext.createOscillator();
+    const gain = this.audioContext.createGain();
+
+    osc.type = 'square';
+    osc.frequency.value = 150;
+
+    gain.gain.value = 0.08;
+    gain.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.15);
+
+    osc.connect(gain);
+    gain.connect(this.audioContext.destination);
+
+    osc.start();
+    osc.stop(this.audioContext.currentTime + 0.15);
+  }
+
   public destroy(): void {
     if (this.audioContext) {
       this.audioContext.close();

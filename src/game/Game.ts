@@ -3,10 +3,16 @@ import { Player } from '../entities/Player';
 import { Enemy, EnemyType } from '../entities/Enemy';
 import { Projectile } from '../entities/Projectile';
 import { Weapon } from '../weapons/Weapon';
+import { MultiWeapon, WeaponType } from '../weapons/WeaponTypes';
+import { GrenadeSystem } from '../weapons/Grenade';
+import { PowerUp, PowerUpType } from '../entities/PowerUp';
 import { InputManager } from '../utils/InputManager';
 import { CollisionManager } from '../utils/CollisionManager';
+import { Minimap } from '../utils/Minimap';
+import { KillstreakSystem } from '../utils/KillstreakSystem';
 import { Terrain } from '../world/Terrain';
 import { SkySystem } from '../world/SkySystem';
+import { WeatherSystem } from '../world/WeatherSystem';
 import { Helicopter } from '../vehicles/Helicopter';
 import { ParticleSystem } from '../effects/ParticleSystem';
 import { CombatEffects } from '../effects/CombatEffects';
@@ -21,6 +27,8 @@ export class Game {
   private enemies: Enemy[] = [];
   private projectiles: Projectile[] = [];
   private weapon: Weapon;
+  private multiWeapon: MultiWeapon;
+  private useMultiWeapon = true; // Use enhanced weapon system
   private inputManager: InputManager;
   private collisionManager: CollisionManager;
   private clock: THREE.Clock;
@@ -35,6 +43,15 @@ export class Game {
   private particleSystem!: ParticleSystem;
   private combatEffects!: CombatEffects;
   private ambientSystem!: AmbientSystem;
+  
+  // Enhanced systems
+  private minimap!: Minimap;
+  private killstreakSystem!: KillstreakSystem;
+  private grenadeSystem!: GrenadeSystem;
+  private weatherSystem!: WeatherSystem;
+  private powerUps: PowerUp[] = [];
+  private waveNumber = 1;
+  private bossSpawned = false;
 
   // Drivable vehicles
   private vehicles: Vehicle[] = [];
@@ -77,6 +94,7 @@ export class Game {
     
     // Initialize weapon
     this.weapon = new Weapon(this.camera, this.scene);
+    this.multiWeapon = new MultiWeapon(this.camera, this.scene);
 
     // Setup world
     this.skySystem = new SkySystem(this.scene);
@@ -84,6 +102,12 @@ export class Game {
     this.particleSystem = new ParticleSystem(this.scene);
     this.combatEffects = new CombatEffects();
     this.ambientSystem = new AmbientSystem();
+    
+    // Initialize enhanced systems
+    this.minimap = new Minimap();
+    this.killstreakSystem = new KillstreakSystem();
+    this.grenadeSystem = new GrenadeSystem(this.scene, this.particleSystem);
+    this.weatherSystem = new WeatherSystem(this.scene);
 
     // Add terrain colliders directly to collision manager
     this.terrain.getColliders().forEach(box => {
@@ -98,6 +122,12 @@ export class Game {
 
     // Spawn helicopters
     this.spawnHelicopters();
+    
+    // Spawn power-ups
+    this.spawnPowerUps();
+    
+    // Setup weapon switching
+    this.setupWeaponSwitching();
 
     // Spawn enemies
     this.spawnEnemies();
@@ -152,7 +182,8 @@ export class Game {
     const colliders = this.terrain.getColliders();
     
     // Spawn initial wave of enemies
-    for (let i = 0; i < 8; i++) {
+    const enemyCount = 8 + Math.floor(this.waveNumber * 1.5);
+    for (let i = 0; i < enemyCount; i++) {
       const angle = Math.random() * Math.PI * 2;
       const distance = 30 + Math.random() * 30;
       const type = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
@@ -172,6 +203,186 @@ export class Game {
       
       this.enemies.push(enemy);
     }
+  }
+  
+  private spawnPowerUps(): void {
+    const powerUpTypes: PowerUpType[] = ['health', 'ammo', 'speed', 'shield', 'damage'];
+    
+    // Spawn power-ups around the map
+    for (let i = 0; i < 10; i++) {
+      const angle = (i / 10) * Math.PI * 2;
+      const distance = 25 + Math.random() * 40;
+      const type = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
+      const x = Math.cos(angle) * distance;
+      const z = Math.sin(angle) * distance;
+      const y = this.terrain.getHeightAt(x, z);
+      
+      const powerUp = new PowerUp(this.scene, new THREE.Vector3(x, y, z), type);
+      this.powerUps.push(powerUp);
+    }
+  }
+  
+  private setupWeaponSwitching(): void {
+    document.addEventListener('keydown', (e) => {
+      if (!this.isRunning) return;
+      
+      // Number keys for weapon switching
+      switch (e.key) {
+        case '1':
+          this.multiWeapon.switchWeapon(WeaponType.RIFLE);
+          this.showWeaponNotification('Assault Rifle');
+          break;
+        case '2':
+          this.multiWeapon.switchWeapon(WeaponType.SHOTGUN);
+          this.showWeaponNotification('Shotgun');
+          break;
+        case '3':
+          this.multiWeapon.switchWeapon(WeaponType.SNIPER);
+          this.showWeaponNotification('Sniper Rifle');
+          break;
+        case '4':
+          this.multiWeapon.switchWeapon(WeaponType.SMG);
+          this.showWeaponNotification('SMG');
+          break;
+        case 'g':
+        case 'G':
+          this.throwGrenade();
+          break;
+        case 'b':
+        case 'B':
+          this.weatherSystem.cycleWeather();
+          this.showWeatherNotification();
+          break;
+      }
+    });
+  }
+  
+  private showWeaponNotification(name: string): void {
+    let notification = document.getElementById('weapon-notification');
+    if (!notification) {
+      notification = document.createElement('div');
+      notification.id = 'weapon-notification';
+      notification.style.cssText = `
+        position: fixed; bottom: 200px; left: 50%;
+        transform: translateX(-50%); padding: 10px 25px;
+        background: rgba(0, 0, 0, 0.8); color: #00ff00;
+        font-family: 'Rajdhani', sans-serif; font-size: 24px;
+        border: 1px solid #00ff00; border-radius: 5px;
+        z-index: 100; opacity: 0; transition: opacity 0.3s ease;
+      `;
+      document.body.appendChild(notification);
+    }
+    
+    notification.textContent = name;
+    notification.style.opacity = '1';
+    
+    setTimeout(() => {
+      if (notification) notification.style.opacity = '0';
+    }, 1500);
+  }
+  
+  private showWeatherNotification(): void {
+    const weatherNames: Record<string, string> = {
+      clear: '☀️ Clear',
+      fog: '🌫️ Fog',
+      rain: '🌧️ Rain',
+      snow: '❄️ Snow',
+      storm: '⛈️ Storm'
+    };
+    
+    let notification = document.getElementById('weather-notification');
+    if (!notification) {
+      notification = document.createElement('div');
+      notification.id = 'weather-notification';
+      notification.style.cssText = `
+        position: fixed; top: 100px; left: 50%;
+        transform: translateX(-50%); padding: 10px 25px;
+        background: rgba(0, 0, 0, 0.8); color: #aaddff;
+        font-family: 'Rajdhani', sans-serif; font-size: 24px;
+        border: 1px solid #aaddff; border-radius: 5px;
+        z-index: 100; opacity: 0; transition: opacity 0.3s ease;
+      `;
+      document.body.appendChild(notification);
+    }
+    
+    notification.textContent = weatherNames[this.weatherSystem.getCurrentWeather()] || 'Weather Changed';
+    notification.style.opacity = '1';
+    
+    setTimeout(() => {
+      if (notification) notification.style.opacity = '0';
+    }, 2000);
+  }
+  
+  private throwGrenade(): void {
+    if (this.playerVehicle) return;
+    
+    const position = this.camera.position.clone();
+    const direction = new THREE.Vector3();
+    this.camera.getWorldDirection(direction);
+    direction.y += 0.3; // Arc upward
+    direction.normalize();
+    
+    if (this.grenadeSystem.throwGrenade(position, direction, 20)) {
+      this.updateGrenadeHUD();
+    }
+  }
+  
+  private updateGrenadeHUD(): void {
+    let grenadeEl = document.getElementById('grenade-count');
+    if (!grenadeEl) {
+      grenadeEl = document.createElement('div');
+      grenadeEl.id = 'grenade-count';
+      grenadeEl.style.cssText = `
+        position: fixed; bottom: 100px; left: 40px;
+        padding: 8px 15px; background: rgba(0, 0, 0, 0.7);
+        color: #00ff00; font-family: 'Rajdhani', sans-serif;
+        font-size: 18px; border-radius: 5px; z-index: 100;
+      `;
+      document.body.appendChild(grenadeEl);
+    }
+    
+    grenadeEl.textContent = `🔴 x${this.grenadeSystem.getGrenadeCount()}`;
+  }
+  
+  private spawnBoss(): void {
+    if (this.bossSpawned) return;
+    
+    this.bossSpawned = true;
+    const angle = Math.random() * Math.PI * 2;
+    const distance = 50;
+    const x = Math.cos(angle) * distance;
+    const z = Math.sin(angle) * distance;
+    const y = this.terrain.getHeightAt(x, z);
+    
+    const boss = new Enemy(
+      this.scene,
+      new THREE.Vector3(x, y, z),
+      'boss'
+    );
+    
+    boss.setTerrainHeightFunction((ex: number, ez: number) => this.terrain.getHeightAt(ex, ez));
+    boss.setColliders(this.terrain.getColliders());
+    
+    this.enemies.push(boss);
+    
+    // Show boss warning
+    this.showBossWarning();
+  }
+  
+  private showBossWarning(): void {
+    const warning = document.createElement('div');
+    warning.style.cssText = `
+      position: fixed; top: 40%; left: 50%;
+      transform: translate(-50%, -50%); padding: 20px 50px;
+      background: rgba(100, 0, 0, 0.9); color: #ff0000;
+      font-family: 'Impact', sans-serif; font-size: 48px;
+      text-shadow: 0 0 20px #ff0000; border: 3px solid #ff0000;
+      z-index: 200; animation: pulse 0.5s ease infinite alternate;
+    `;
+    warning.textContent = '⚠️ BOSS INCOMING ⚠️';
+    document.body.appendChild(warning);
+    
+    setTimeout(() => warning.remove(), 3000);
   }
 
   public start(): void {
@@ -228,18 +439,35 @@ export class Game {
     }
 
     // Handle shooting (only when not in vehicle)
-    if (!this.playerVehicle && this.inputManager.isMouseDown && this.weapon.canShoot()) {
-      const projectile = this.weapon.shoot();
-      if (projectile) {
-        this.projectiles.push(projectile);
-        this.combatEffects.triggerScreenShake(0.3);
-        this.ambientSystem.playShootSound();
+    if (!this.playerVehicle && this.inputManager.isMouseDown) {
+      const canShoot = this.useMultiWeapon ? this.multiWeapon.canShoot() : this.weapon.canShoot();
+      
+      if (canShoot) {
+        if (this.useMultiWeapon) {
+          const projectileArray = this.multiWeapon.shoot();
+          projectileArray.forEach(p => this.projectiles.push(p));
+          if (projectileArray.length > 0) {
+            this.combatEffects.triggerScreenShake(0.3);
+            this.ambientSystem.playShootSound();
+          }
+        } else {
+          const projectile = this.weapon.shoot();
+          if (projectile) {
+            this.projectiles.push(projectile);
+            this.combatEffects.triggerScreenShake(0.3);
+            this.ambientSystem.playShootSound();
+          }
+        }
       }
     }
 
     // Handle reload
     if (this.inputManager.isReloading) {
-      this.weapon.reload();
+      if (this.useMultiWeapon) {
+        this.multiWeapon.reload();
+      } else {
+        this.weapon.reload();
+      }
       this.inputManager.isReloading = false;
       this.ambientSystem.playReloadSound();
     }
@@ -249,14 +477,32 @@ export class Game {
 
     // Update enemies
     this.updateEnemies(delta);
+    
+    // Update grenades
+    this.grenadeSystem.update(delta, (x, z) => this.terrain.getHeightAt(x, z));
+    this.checkGrenadeExplosions();
+    
+    // Update power-ups
+    this.updatePowerUps();
+    
+    // Update enhanced systems
+    this.killstreakSystem.update(delta);
+    this.minimap.update(this.camera, this.enemies);
+    this.weatherSystem.update(delta, this.camera.position);
 
     // Update weapon (hide when in vehicle)
     if (this.playerVehicle) {
       this.weapon.hide();
+      this.multiWeapon.hide();
     } else {
-      this.weapon.show();
+      if (this.useMultiWeapon) {
+        this.multiWeapon.show();
+        this.multiWeapon.update(delta, this.inputManager.isAiming);
+      } else {
+        this.weapon.show();
+        this.weapon.update(delta, this.inputManager.isAiming);
+      }
     }
-    this.weapon.update(delta, this.inputManager.isAiming);
 
     // Update world systems
     this.helicopters.forEach(h => h.update(delta));
@@ -373,11 +619,23 @@ export class Game {
 
           if (enemy.isDead()) {
             const points = isHeadshot ? 150 : 100;
-            this.score += points;
+            const multiplier = this.killstreakSystem.getScoreMultiplier();
+            this.score += Math.floor(points * multiplier);
             this.kills++;
             
-            this.combatEffects.showKillPopup(points, isHeadshot);
+            // Register kill for killstreak
+            this.killstreakSystem.registerKill();
+            
+            this.combatEffects.showKillPopup(Math.floor(points * multiplier), isHeadshot);
             this.particleSystem.createExplosion(enemy.getPosition());
+            
+            // Check if boss was killed
+            const wasBoss = enemy.getType() === 'boss';
+            if (wasBoss) {
+              this.bossSpawned = false;
+              this.score += 500;
+              this.waveNumber++;
+            }
             
             enemy.destroy();
             this.enemies.splice(j, 1);
@@ -403,6 +661,11 @@ export class Game {
               newEnemy.setColliders(this.terrain.getColliders());
               
               this.enemies.push(newEnemy);
+              
+              // Spawn boss every 10 kills
+              if (this.kills > 0 && this.kills % 10 === 0 && !this.bossSpawned) {
+                this.spawnBoss();
+              }
             }, 2000 + Math.random() * 2000);
           }
           break;
@@ -421,6 +684,117 @@ export class Game {
         enemy.attack();
         this.combatEffects.flashDamageOverlay();
         this.combatEffects.triggerScreenShake(0.5);
+      }
+    });
+  }
+  
+  private updatePowerUps(): void {
+    const playerPos = this.player.getPosition();
+    
+    for (let i = this.powerUps.length - 1; i >= 0; i--) {
+      const powerUp = this.powerUps[i];
+      powerUp.update(0.016);
+      
+      if (powerUp.checkCollision(playerPos)) {
+        this.collectPowerUp(powerUp);
+        powerUp.collect();
+        
+        // Respawn after delay
+        setTimeout(() => {
+          const angle = Math.random() * Math.PI * 2;
+          const distance = 25 + Math.random() * 40;
+          const types: PowerUpType[] = ['health', 'ammo', 'speed', 'shield', 'damage'];
+          const type = types[Math.floor(Math.random() * types.length)];
+          const x = Math.cos(angle) * distance;
+          const z = Math.sin(angle) * distance;
+          const y = this.terrain.getHeightAt(x, z);
+          
+          const newPowerUp = new PowerUp(this.scene, new THREE.Vector3(x, y, z), type);
+          this.powerUps.push(newPowerUp);
+        }, 15000);
+        
+        this.powerUps.splice(i, 1);
+      }
+    }
+  }
+  
+  private collectPowerUp(powerUp: PowerUp): void {
+    const type = powerUp.getType();
+    const value = powerUp.getValue();
+    
+    switch (type) {
+      case 'health':
+        this.player.heal(value);
+        break;
+      case 'ammo':
+        if (this.useMultiWeapon) {
+          this.multiWeapon.addAmmo(value);
+        }
+        break;
+      case 'speed':
+        this.player.applySpeedBoost(value);
+        break;
+      case 'shield':
+        this.player.addShield(value);
+        break;
+      case 'damage':
+        // Could apply damage boost
+        break;
+    }
+    
+    this.showPowerUpNotification(powerUp.getDescription());
+    this.ambientSystem.playPowerUpSound?.();
+  }
+  
+  private showPowerUpNotification(description: string): void {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed; top: 60%; left: 50%;
+      transform: translate(-50%, -50%); padding: 10px 25px;
+      background: rgba(0, 50, 0, 0.9); color: #00ff00;
+      font-family: 'Rajdhani', sans-serif; font-size: 28px;
+      border: 2px solid #00ff00; border-radius: 5px;
+      z-index: 150; animation: fadeUp 1s ease forwards;
+    `;
+    notification.textContent = description;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => notification.remove(), 1000);
+  }
+  
+  private checkGrenadeExplosions(): void {
+    // Check if any grenades exploded and apply damage
+    const explodedGrenades = this.grenadeSystem.getActiveGrenades();
+    
+    explodedGrenades.forEach(grenade => {
+      const explosionPos = grenade.getPosition();
+      const radius = grenade.getExplosionRadius();
+      const baseDamage = grenade.getExplosionDamage();
+      
+      // Damage enemies in radius
+      this.enemies.forEach(enemy => {
+        const distance = enemy.getPosition().distanceTo(explosionPos);
+        if (distance < radius) {
+          const damage = baseDamage * (1 - distance / radius);
+          enemy.takeDamage(Math.floor(damage), false);
+          
+          if (enemy.isDead()) {
+            this.score += 75;
+            this.kills++;
+            this.killstreakSystem.registerKill();
+            this.combatEffects.showKillPopup(75, false);
+            this.particleSystem.createExplosion(enemy.getPosition());
+          }
+        }
+      });
+      
+      // Damage player if too close
+      const playerDist = this.player.getPosition().distanceTo(explosionPos);
+      if (playerDist < radius) {
+        const damage = baseDamage * 0.5 * (1 - playerDist / radius);
+        this.player.takeDamage(Math.floor(damage));
+        this.combatEffects.flashDamageOverlay();
+        this.combatEffects.triggerScreenShake(1);
       }
     });
   }
@@ -445,10 +819,16 @@ export class Game {
       healthText.textContent = Math.ceil(this.player.getHealth()).toString();
     }
 
+    // Ammo (use multi-weapon if enabled)
     const ammoCurrent = document.getElementById('ammo-current');
     const ammoReserve = document.getElementById('ammo-reserve');
-    if (ammoCurrent) ammoCurrent.textContent = this.weapon.getCurrentAmmo().toString();
-    if (ammoReserve) ammoReserve.textContent = this.weapon.getReserveAmmo().toString();
+    if (this.useMultiWeapon) {
+      if (ammoCurrent) ammoCurrent.textContent = this.multiWeapon.getCurrentAmmo().toString();
+      if (ammoReserve) ammoReserve.textContent = this.multiWeapon.getReserveAmmo().toString();
+    } else {
+      if (ammoCurrent) ammoCurrent.textContent = this.weapon.getCurrentAmmo().toString();
+      if (ammoReserve) ammoReserve.textContent = this.weapon.getReserveAmmo().toString();
+    }
 
     const scoreValue = document.getElementById('score-value');
     if (scoreValue) scoreValue.textContent = this.score.toString();
@@ -456,8 +836,33 @@ export class Game {
     const killsValue = document.getElementById('kills-value');
     if (killsValue) killsValue.textContent = this.kills.toString();
     
+    // Update weapon name display
+    this.updateWeaponDisplay();
+    
+    // Update grenade count
+    this.updateGrenadeHUD();
+    
     // Update compass
     this.updateCompass();
+  }
+  
+  private updateWeaponDisplay(): void {
+    let weaponEl = document.getElementById('weapon-name-display');
+    if (!weaponEl) {
+      weaponEl = document.createElement('div');
+      weaponEl.id = 'weapon-name-display';
+      weaponEl.style.cssText = `
+        position: fixed; bottom: 30px; right: 180px;
+        padding: 5px 15px; background: rgba(0, 0, 0, 0.6);
+        color: #aaddff; font-family: 'Rajdhani', sans-serif;
+        font-size: 16px; border-radius: 3px; z-index: 100;
+      `;
+      document.body.appendChild(weaponEl);
+    }
+    
+    if (this.useMultiWeapon) {
+      weaponEl.textContent = this.multiWeapon.getCurrentWeaponName();
+    }
   }
   
   private updateCompass(): void {

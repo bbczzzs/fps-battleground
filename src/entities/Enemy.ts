@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-export type EnemyType = 'rifle' | 'smg' | 'heavy';
+export type EnemyType = 'rifle' | 'smg' | 'heavy' | 'boss';
 
 interface EnemyConfig {
   health: number;
@@ -14,7 +14,8 @@ interface EnemyConfig {
 const ENEMY_CONFIGS: Record<EnemyType, EnemyConfig> = {
   rifle: { health: 80, speed: 2.5, damage: 15, attackRate: 0.8, color: 0x4a5568, scale: 1 },
   smg: { health: 60, speed: 5, damage: 8, attackRate: 2, color: 0x744210, scale: 0.9 },
-  heavy: { health: 200, speed: 1.5, damage: 25, attackRate: 0.5, color: 0x1a202c, scale: 1.3 }
+  heavy: { health: 200, speed: 1.5, damage: 25, attackRate: 0.5, color: 0x1a202c, scale: 1.3 },
+  boss: { health: 1000, speed: 3, damage: 40, attackRate: 1.5, color: 0xff0000, scale: 2.5 }
 };
 
 export class Enemy {
@@ -55,6 +56,12 @@ export class Enemy {
 
   private createMesh(config: EnemyConfig): THREE.Group {
     const group = new THREE.Group();
+    
+    // Boss gets special appearance
+    if (this.type === 'boss') {
+      return this.createBossMesh(config);
+    }
+    
     const bodyMaterial = new THREE.MeshStandardMaterial({ color: config.color, roughness: 0.7 });
     const skinMaterial = new THREE.MeshStandardMaterial({ color: 0xd4a574, roughness: 0.6 });
 
@@ -139,6 +146,122 @@ export class Enemy {
       new THREE.MeshBasicMaterial({ color: 0x00ff00 })
     );
     healthBarFill.position.y = 2.3;
+    healthBarFill.position.z = 0.01;
+    healthBarFill.name = 'healthBarFill';
+    group.add(healthBarFill);
+
+    return group;
+  }
+  
+  private createBossMesh(config: EnemyConfig): THREE.Group {
+    const group = new THREE.Group();
+    const bodyMaterial = new THREE.MeshStandardMaterial({ 
+      color: config.color, 
+      roughness: 0.3,
+      metalness: 0.7,
+      emissive: 0x440000,
+      emissiveIntensity: 0.5
+    });
+
+    // Large armored torso
+    const torso = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.2, 0.6), bodyMaterial);
+    torso.position.y = 1.5;
+    torso.castShadow = true;
+    torso.name = 'torso';
+    group.add(torso);
+
+    // Menacing head
+    const head = new THREE.Mesh(
+      new THREE.BoxGeometry(0.5, 0.5, 0.5), 
+      new THREE.MeshStandardMaterial({ 
+        color: 0x000000, 
+        emissive: 0xff0000, 
+        emissiveIntensity: 0.8 
+      })
+    );
+    head.position.y = 2.5;
+    head.castShadow = true;
+    head.name = 'head';
+    group.add(head);
+
+    // Glowing red eyes
+    const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    [-0.15, 0.15].forEach(x => {
+      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), eyeMaterial);
+      eye.position.set(x, 2.5, 0.26);
+      group.add(eye);
+      
+      // Add eye glow
+      const eyeLight = new THREE.PointLight(0xff0000, 1, 3);
+      eyeLight.position.copy(eye.position);
+      group.add(eyeLight);
+    });
+
+    // Shoulder pads
+    [-0.6, 0.6].forEach(x => {
+      const shoulder = new THREE.Mesh(
+        new THREE.BoxGeometry(0.3, 0.4, 0.4),
+        bodyMaterial
+      );
+      shoulder.position.set(x, 2.1, 0);
+      shoulder.castShadow = true;
+      group.add(shoulder);
+    });
+
+    // Massive arms
+    const armGeo = new THREE.CapsuleGeometry(0.2, 0.8, 4, 8);
+    const leftArm = new THREE.Mesh(armGeo, bodyMaterial);
+    leftArm.position.set(-0.7, 1.3, 0);
+    leftArm.castShadow = true;
+    group.add(leftArm);
+
+    const rightArm = new THREE.Mesh(armGeo, bodyMaterial);
+    rightArm.position.set(0.7, 1.3, 0);
+    rightArm.castShadow = true;
+    group.add(rightArm);
+
+    // Heavy legs
+    const legGeo = new THREE.CapsuleGeometry(0.18, 0.8, 4, 8);
+    [-0.3, 0.3].forEach(x => {
+      const leg = new THREE.Mesh(legGeo, bodyMaterial);
+      leg.position.set(x, 0.5, 0);
+      leg.castShadow = true;
+      group.add(leg);
+    });
+
+    // Mini-gun weapon
+    const weapon = new THREE.Group();
+    const barrels = new THREE.Group();
+    for (let i = 0; i < 6; i++) {
+      const angle = (i / 6) * Math.PI * 2;
+      const barrel = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.04, 0.04, 1.2, 8),
+        new THREE.MeshStandardMaterial({ color: 0x1a1a1a, metalness: 0.9 })
+      );
+      barrel.rotation.x = Math.PI / 2;
+      barrel.position.x = Math.cos(angle) * 0.15;
+      barrel.position.y = Math.sin(angle) * 0.15;
+      barrels.add(barrel);
+    }
+    weapon.add(barrels);
+    weapon.position.set(0.8, 1.3, 0.4);
+    weapon.name = 'weapon';
+    group.add(weapon);
+
+    // Boss health bar (larger)
+    const healthBarBg = new THREE.Mesh(
+      new THREE.PlaneGeometry(2.0, 0.15),
+      new THREE.MeshBasicMaterial({ color: 0x333333 })
+    );
+    healthBarBg.position.y = 3.5;
+    healthBarBg.name = 'healthBarBg';
+    group.add(healthBarBg);
+
+    const healthBarFill = new THREE.Mesh(
+      new THREE.PlaneGeometry(2.0, 0.15),
+      new THREE.MeshBasicMaterial({ color: 0xff0000 })
+    );
+    healthBarFill.position.y = 3.5;
     healthBarFill.position.z = 0.01;
     healthBarFill.name = 'healthBarFill';
     group.add(healthBarFill);

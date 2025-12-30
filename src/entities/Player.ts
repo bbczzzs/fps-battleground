@@ -182,6 +182,20 @@ export class Player {
   public heal(amount: number): void {
     this.health = Math.min(100, this.health + amount);
   }
+  
+  public addShield(amount: number): void {
+    // Add shield as extra health
+    this.health = Math.min(150, this.health + amount);
+  }
+  
+  public applySpeedBoost(duration: number): void {
+    const originalSpeed = this.moveSpeed;
+    this.moveSpeed = originalSpeed * 1.5;
+    
+    setTimeout(() => {
+      this.moveSpeed = originalSpeed;
+    }, duration * 1000);
+  }
 
   public getHealth(): number {
     return this.health;

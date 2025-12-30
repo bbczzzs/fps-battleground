@@ -408,6 +408,348 @@
         animation: pulse 2s ease-in-out infinite;
       }
 
+      /* Multiplayer Button */
+      .multiplayer-btn::before {
+        background: linear-gradient(135deg, rgba(60,120,255,0.2) 0%, rgba(80,140,255,0.1) 100%) !important;
+        border-color: rgba(80,140,255,0.5) !important;
+      }
+      .multiplayer-btn:hover::before {
+        background: linear-gradient(135deg, rgba(60,120,255,0.4) 0%, rgba(80,140,255,0.2) 100%) !important;
+        border-color: rgba(80,140,255,0.8) !important;
+        box-shadow: 0 0 30px rgba(80,140,255,0.3), inset 0 0 30px rgba(80,140,255,0.1) !important;
+      }
+
+      /* Multiplayer Lobby Styles */
+      #multiplayer-lobby {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 2500;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      
+      .lobby-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(5px);
+      }
+      
+      .lobby-container {
+        position: relative;
+        width: 90%;
+        max-width: 500px;
+        background: linear-gradient(180deg, rgba(20,25,35,0.98) 0%, rgba(10,15,25,0.98) 100%);
+        border: 1px solid rgba(80,140,255,0.3);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(80,140,255,0.1);
+      }
+      
+      .lobby-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 25px;
+        background: linear-gradient(90deg, rgba(80,140,255,0.15) 0%, transparent 100%);
+        border-bottom: 1px solid rgba(80,140,255,0.2);
+      }
+      
+      .lobby-header h2 {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 18px;
+        color: #fff;
+        letter-spacing: 3px;
+        margin: 0;
+      }
+      
+      .lobby-close {
+        background: none;
+        border: none;
+        color: rgba(255,255,255,0.5);
+        font-size: 20px;
+        cursor: pointer;
+        transition: color 0.2s;
+      }
+      .lobby-close:hover { color: #ff4444; }
+      
+      .lobby-content {
+        padding: 30px;
+        text-align: center;
+      }
+      
+      .lobby-desc {
+        color: rgba(255,255,255,0.6);
+        font-size: 14px;
+        margin-bottom: 30px;
+        line-height: 1.6;
+      }
+      
+      .lobby-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        align-items: center;
+      }
+      
+      .lobby-btn {
+        padding: 15px 35px;
+        background: linear-gradient(135deg, rgba(80,140,255,0.2) 0%, rgba(60,120,255,0.1) 100%);
+        border: 1px solid rgba(80,140,255,0.5);
+        color: #fff;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 14px;
+        letter-spacing: 2px;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .lobby-btn:hover {
+        background: linear-gradient(135deg, rgba(80,140,255,0.4) 0%, rgba(60,120,255,0.2) 100%);
+        box-shadow: 0 0 20px rgba(80,140,255,0.3);
+      }
+      .lobby-btn.primary {
+        background: linear-gradient(135deg, rgba(80,200,120,0.3) 0%, rgba(60,180,100,0.15) 100%);
+        border-color: rgba(80,200,120,0.5);
+      }
+      .lobby-btn.primary:hover {
+        background: linear-gradient(135deg, rgba(80,200,120,0.5) 0%, rgba(60,180,100,0.25) 100%);
+        box-shadow: 0 0 20px rgba(80,200,120,0.3);
+      }
+      .lobby-btn.large {
+        padding: 18px 50px;
+        font-size: 16px;
+      }
+      
+      .lobby-divider {
+        color: rgba(255,255,255,0.3);
+        font-size: 12px;
+        letter-spacing: 3px;
+      }
+      
+      .join-section {
+        display: flex;
+        gap: 10px;
+      }
+      
+      #room-code-input {
+        width: 120px;
+        padding: 15px;
+        background: rgba(0,0,0,0.4);
+        border: 1px solid rgba(80,140,255,0.3);
+        color: #fff;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 18px;
+        text-align: center;
+        letter-spacing: 5px;
+        text-transform: uppercase;
+      }
+      #room-code-input:focus {
+        outline: none;
+        border-color: rgba(80,140,255,0.6);
+        box-shadow: 0 0 15px rgba(80,140,255,0.2);
+      }
+      #room-code-input::placeholder {
+        color: rgba(255,255,255,0.3);
+        letter-spacing: 2px;
+        font-size: 12px;
+      }
+      
+      .room-code-display {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 25px;
+      }
+      .code-label {
+        font-size: 12px;
+        color: rgba(255,255,255,0.5);
+        letter-spacing: 3px;
+      }
+      .code-value {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 42px;
+        color: #5af;
+        letter-spacing: 10px;
+        text-shadow: 0 0 20px rgba(80,140,255,0.5);
+      }
+      .copy-btn {
+        padding: 8px 15px;
+        background: rgba(80,140,255,0.2);
+        border: 1px solid rgba(80,140,255,0.4);
+        color: #fff;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .copy-btn:hover {
+        background: rgba(80,140,255,0.4);
+      }
+      
+      .waiting-text {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        color: rgba(255,255,255,0.7);
+        font-size: 14px;
+        margin-bottom: 15px;
+      }
+      
+      .loader {
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(80,140,255,0.3);
+        border-top-color: #5af;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      
+      .share-hint {
+        font-size: 12px;
+        color: rgba(255,255,255,0.4);
+      }
+      
+      .players-display {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 30px;
+        margin-bottom: 30px;
+      }
+      
+      .player-card {
+        padding: 20px 30px;
+        background: rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 8px;
+        text-align: center;
+      }
+      .player-card.you {
+        border-color: rgba(80,200,120,0.5);
+        background: rgba(80,200,120,0.1);
+      }
+      .player-card.opponent {
+        border-color: rgba(255,80,80,0.5);
+        background: rgba(255,80,80,0.1);
+      }
+      
+      .player-icon {
+        font-size: 32px;
+        margin-bottom: 10px;
+      }
+      
+      .player-name {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 14px;
+        color: #fff;
+        margin-bottom: 8px;
+      }
+      
+      .player-status {
+        font-size: 10px;
+        letter-spacing: 2px;
+        padding: 4px 10px;
+        border-radius: 3px;
+      }
+      .player-status.ready {
+        background: rgba(80,200,120,0.3);
+        color: #5c8;
+      }
+      
+      .vs-text {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 24px;
+        color: rgba(255,255,255,0.3);
+        font-weight: bold;
+      }
+
+      /* Multiplayer HUD */
+      #mp-score-display {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        background: rgba(0,0,0,0.7);
+        padding: 10px 30px;
+        border-radius: 30px;
+        border: 1px solid rgba(80,140,255,0.3);
+        z-index: 200;
+        display: none;
+      }
+      .mp-player-score {
+        text-align: center;
+      }
+      .mp-player-score .name {
+        font-size: 12px;
+        color: rgba(255,255,255,0.6);
+        margin-bottom: 4px;
+      }
+      .mp-player-score .score {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 28px;
+        color: #fff;
+      }
+      .mp-player-score.you .score { color: #5c8; }
+      .mp-player-score.enemy .score { color: #f55; }
+      .mp-divider {
+        font-size: 20px;
+        color: rgba(255,255,255,0.3);
+      }
+
+      /* Match Result Overlay */
+      #match-result {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.9);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 3000;
+      }
+      .result-content {
+        text-align: center;
+      }
+      .result-title {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 72px;
+        font-weight: 900;
+        margin-bottom: 30px;
+        text-shadow: 0 0 40px currentColor;
+      }
+      .result-title.victory { color: #5c8; }
+      .result-title.defeat { color: #f55; }
+      .final-score {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 48px;
+        color: #fff;
+        margin-bottom: 40px;
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+      }
+      .final-score span:first-child { color: #5c8; }
+      .final-score span:last-child { color: #f55; }
+
       @keyframes pulse {
         0%, 100% { opacity: 0.3; }
         50% { opacity: 0.6; }
@@ -1024,9 +1366,78 @@
 
         <div class="play-section">
           <button class="play-btn" id="deploy-btn">
-            <span><span class="btn-icon">▶</span>DEPLOY</span>
+            <span><span class="btn-icon">▶</span>SOLO MODE</span>
           </button>
-          <div class="start-hint">Click to start mission</div>
+          <button class="play-btn multiplayer-btn" id="multiplayer-btn">
+            <span><span class="btn-icon">⚔</span>1v1 BATTLE</span>
+          </button>
+          <div class="start-hint">Choose your mode</div>
+        </div>
+      </div>
+
+      <!-- Multiplayer Lobby -->
+      <div id="multiplayer-lobby" style="display: none;">
+        <div class="lobby-overlay"></div>
+        <div class="lobby-container">
+          <div class="lobby-header">
+            <h2>1v1 BATTLEGROUND</h2>
+            <button class="lobby-close" id="lobby-close">✕</button>
+          </div>
+          
+          <div class="lobby-content" id="lobby-menu">
+            <p class="lobby-desc">Face off against another player in a deadly 1v1 battle. First to 5 kills wins!</p>
+            
+            <div class="lobby-actions">
+              <button class="lobby-btn primary" id="create-room-btn">
+                <span class="btn-icon">🎮</span>
+                CREATE ROOM
+              </button>
+              <div class="lobby-divider">OR</div>
+              <div class="join-section">
+                <input type="text" id="room-code-input" placeholder="ENTER CODE" maxlength="4" />
+                <button class="lobby-btn" id="join-room-btn">JOIN</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="lobby-content" id="lobby-waiting" style="display: none;">
+            <div class="room-code-display">
+              <span class="code-label">ROOM CODE</span>
+              <span class="code-value" id="display-room-code">----</span>
+              <button class="copy-btn" id="copy-code-btn">📋 COPY</button>
+            </div>
+            <div class="waiting-text">
+              <div class="loader"></div>
+              <span>Waiting for opponent...</span>
+            </div>
+            <p class="share-hint">Share this code with your friend to join!</p>
+          </div>
+
+          <div class="lobby-content" id="lobby-ready" style="display: none;">
+            <div class="players-display">
+              <div class="player-card you">
+                <div class="player-icon">👤</div>
+                <div class="player-name" id="your-name">You</div>
+                <div class="player-status ready">READY</div>
+              </div>
+              <div class="vs-text">VS</div>
+              <div class="player-card opponent">
+                <div class="player-icon">👤</div>
+                <div class="player-name" id="opponent-name">Opponent</div>
+                <div class="player-status ready">READY</div>
+              </div>
+            </div>
+            <button class="lobby-btn primary large" id="start-battle-btn">
+              <span class="btn-icon">⚔</span> START BATTLE
+            </button>
+          </div>
+
+          <div class="lobby-content" id="lobby-joining" style="display: none;">
+            <div class="waiting-text">
+              <div class="loader"></div>
+              <span>Connecting to room...</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1132,6 +1543,34 @@
       </div>
       <div id="compass-degree">0°</div>
       <div id="player-coords">X: 0 | Z: 0</div>
+    </div>
+
+    <!-- Multiplayer Score Display -->
+    <div id="mp-score-display">
+      <div class="mp-player-score you">
+        <div class="name" id="mp-your-name">YOU</div>
+        <div class="score" id="mp-your-score">0</div>
+      </div>
+      <div class="mp-divider">-</div>
+      <div class="mp-player-score enemy">
+        <div class="name" id="mp-enemy-name">ENEMY</div>
+        <div class="score" id="mp-enemy-score">0</div>
+      </div>
+    </div>
+
+    <!-- Match Result Overlay -->
+    <div id="match-result" style="display: none;">
+      <div class="result-content">
+        <div class="result-title" id="result-title">VICTORY</div>
+        <div class="result-stats">
+          <div class="final-score">
+            <span id="final-your-score">5</span>
+            <span>-</span>
+            <span id="final-enemy-score">3</span>
+          </div>
+        </div>
+        <button class="lobby-btn primary" id="rematch-btn">PLAY AGAIN</button>
+      </div>
     </div>
     
     <script type="module" src="/src/main.ts"></script>

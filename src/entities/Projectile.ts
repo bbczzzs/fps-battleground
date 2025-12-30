@@ -63,6 +63,10 @@ export class Projectile {
     return this.mesh.position.clone();
   }
 
+  public getDamage(): number {
+    return this.damage;
+  }
+
   public destroy(): void {
     this.scene.remove(this.mesh);
     this.mesh.geometry.dispose();

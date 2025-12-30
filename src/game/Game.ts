@@ -18,6 +18,8 @@ import { ParticleSystem } from '../effects/ParticleSystem';
 import { CombatEffects } from '../effects/CombatEffects';
 import { AmbientSystem } from '../effects/AmbientSystem';
 import { Vehicle, VehicleType } from '../vehicles/Vehicle';
+import { MultiplayerManager, PlayerState, GameMessage } from '../multiplayer/MultiplayerManager';
+import { NetworkPlayer } from '../multiplayer/NetworkPlayer';
 
 export class Game {
   private scene: THREE.Scene;
@@ -57,6 +59,16 @@ export class Game {
   private vehicles: Vehicle[] = [];
   private playerVehicle: Vehicle | null = null;
   private nearbyVehicle: Vehicle | null = null;
+
+  // Multiplayer
+  private isMultiplayer = false;
+  private multiplayerManager: MultiplayerManager | null = null;
+  private networkPlayer: NetworkPlayer | null = null;
+  private myKills = 0;
+  private enemyKills = 0;
+  private readonly KILLS_TO_WIN = 5;
+  private lastStateSent = 0;
+  private readonly STATE_SEND_RATE = 50; // ms
 
   constructor() {
     // Scene setup
@@ -387,6 +399,7 @@ export class Game {
 
   public start(): void {
     this.isRunning = true;
+    this.isMultiplayer = false;
     
     // Lock pointer for FPS controls (desktop only)
     if (!this.inputManager.isMobile) {
@@ -401,6 +414,192 @@ export class Game {
 
     // Start game loop
     this.gameLoop();
+  }
+
+  public startMultiplayer(manager: MultiplayerManager): void {
+    this.isRunning = true;
+    this.isMultiplayer = true;
+    this.multiplayerManager = manager;
+    this.myKills = 0;
+    this.enemyKills = 0;
+    
+    // Hide solo-mode HUD elements
+    const statsContainer = document.getElementById('stats-container');
+    if (statsContainer) statsContainer.style.display = 'none';
+    
+    // Show multiplayer score display
+    const mpScore = document.getElementById('mp-score-display');
+    if (mpScore) mpScore.style.display = 'flex';
+    
+    // Set names in HUD
+    const mpYourName = document.getElementById('mp-your-name');
+    const mpEnemyName = document.getElementById('mp-enemy-name');
+    if (mpYourName) mpYourName.textContent = manager.getPlayerName();
+    if (mpEnemyName) mpEnemyName.textContent = manager.getOpponentName();
+    
+    // Remove AI enemies for 1v1
+    this.enemies.forEach(e => e.destroy());
+    this.enemies = [];
+    
+    // Create network player (opponent)
+    this.networkPlayer = new NetworkPlayer(this.scene, manager.getOpponentName());
+    
+    // Spawn at different positions based on host/client
+    const spawnPos = manager.getIsHost() 
+      ? new THREE.Vector3(-20, 2, -20)
+      : new THREE.Vector3(20, 2, 20);
+    this.player.setPosition(spawnPos);
+    
+    // Setup multiplayer callbacks
+    this.setupMultiplayerCallbacks();
+    
+    // Lock pointer for FPS controls (desktop only)
+    if (!this.inputManager.isMobile) {
+      document.body.requestPointerLock();
+      
+      document.addEventListener('pointerlockchange', () => {
+        if (document.pointerLockElement !== document.body) {
+          this.pause();
+        }
+      });
+    }
+
+    // Start game loop
+    this.gameLoop();
+  }
+
+  private setupMultiplayerCallbacks(): void {
+    if (!this.multiplayerManager) return;
+    
+    // Receive opponent state updates
+    this.multiplayerManager.onState((state: PlayerState) => {
+      if (this.networkPlayer) {
+        this.networkPlayer.setTargetState(
+          new THREE.Vector3(state.position.x, state.position.y, state.position.z),
+          new THREE.Euler(state.rotation.x, state.rotation.y, state.rotation.z)
+        );
+        this.networkPlayer.setHealth(state.health);
+        
+        if (state.isShooting) {
+          this.networkPlayer.shoot();
+        }
+      }
+    });
+    
+    // Receive game events
+    this.multiplayerManager.onEvent((event: GameMessage) => {
+      switch (event.type) {
+        case 'hit':
+          // I got hit by opponent
+          this.player.takeDamage(event.data.damage);
+          // Visual damage feedback
+          
+          if (this.player.getHealth() <= 0) {
+            this.handleMyDeath();
+          }
+          break;
+          
+        case 'death':
+          // Opponent died (I killed them)
+          this.myKills++;
+          this.updateMultiplayerScore();
+          this.checkWinCondition();
+          break;
+          
+        case 'respawn':
+          // Opponent respawned
+          if (this.networkPlayer) {
+            this.networkPlayer.respawn(new THREE.Vector3(
+              event.data.position.x,
+              event.data.position.y,
+              event.data.position.z
+            ));
+          }
+          break;
+          
+        case 'win':
+          // Opponent won
+          this.showMatchResult(false);
+          break;
+      }
+    });
+  }
+
+  private handleMyDeath(): void {
+    // Notify opponent
+    this.multiplayerManager?.sendDeath();
+    
+    // Respawn after delay
+    setTimeout(() => {
+      const spawnPos = this.multiplayerManager?.getIsHost()
+        ? new THREE.Vector3(-20 + Math.random() * 10, 2, -20 + Math.random() * 10)
+        : new THREE.Vector3(20 + Math.random() * 10, 2, 20 + Math.random() * 10);
+      
+      this.player.setPosition(spawnPos);
+      this.player.heal(100);
+      
+      // Notify opponent of respawn
+      this.multiplayerManager?.sendRespawn(spawnPos);
+    }, 2000);
+  }
+
+  private updateMultiplayerScore(): void {
+    const myScoreEl = document.getElementById('mp-your-score');
+    const enemyScoreEl = document.getElementById('mp-enemy-score');
+    
+    if (myScoreEl) myScoreEl.textContent = this.myKills.toString();
+    if (enemyScoreEl) enemyScoreEl.textContent = this.enemyKills.toString();
+  }
+
+  private checkWinCondition(): void {
+    if (this.myKills >= this.KILLS_TO_WIN) {
+      this.multiplayerManager?.sendWin(this.myKills);
+      this.showMatchResult(true);
+    }
+  }
+
+  private showMatchResult(won: boolean): void {
+    this.isRunning = false;
+    
+    const resultEl = document.getElementById('match-result');
+    const titleEl = document.getElementById('result-title');
+    const myScoreEl = document.getElementById('final-your-score');
+    const enemyScoreEl = document.getElementById('final-enemy-score');
+    const rematchBtn = document.getElementById('rematch-btn');
+    
+    if (resultEl) resultEl.style.display = 'flex';
+    if (titleEl) {
+      titleEl.textContent = won ? 'VICTORY' : 'DEFEAT';
+      titleEl.className = 'result-title ' + (won ? 'victory' : 'defeat');
+    }
+    if (myScoreEl) myScoreEl.textContent = this.myKills.toString();
+    if (enemyScoreEl) enemyScoreEl.textContent = this.enemyKills.toString();
+    
+    rematchBtn?.addEventListener('click', () => {
+      location.reload();
+    });
+  }
+
+  private sendPlayerState(): void {
+    if (!this.multiplayerManager || !this.isMultiplayer) return;
+    
+    const now = Date.now();
+    if (now - this.lastStateSent < this.STATE_SEND_RATE) return;
+    
+    const pos = this.player.getPosition();
+    const dir = this.player.getDirection();
+    const yaw = Math.atan2(dir.x, dir.z);
+    
+    const state: PlayerState = {
+      position: { x: pos.x, y: pos.y, z: pos.z },
+      rotation: { x: 0, y: yaw, z: 0 },
+      health: this.player.getHealth(),
+      isShooting: this.inputManager.isMouseDown,
+      weaponType: this.multiWeapon.getCurrentWeaponType()
+    };
+    
+    this.multiplayerManager.sendState(state);
+    this.lastStateSent = now;
   }
 
   private pause(): void {
@@ -475,8 +674,17 @@ export class Game {
     // Update projectiles
     this.updateProjectiles(delta);
 
-    // Update enemies
-    this.updateEnemies(delta);
+    // Update enemies (solo mode only)
+    if (!this.isMultiplayer) {
+      this.updateEnemies(delta);
+    }
+    
+    // Update network player in multiplayer
+    if (this.isMultiplayer && this.networkPlayer) {
+      this.networkPlayer.update(delta, this.camera.position);
+      this.checkMultiplayerHits();
+      this.sendPlayerState();
+    }
     
     // Update grenades
     this.grenadeSystem.update(delta, (x, z) => this.terrain.getHeightAt(x, z));
@@ -517,6 +725,32 @@ export class Game {
     this.renderer.render(this.scene, this.camera);
 
     requestAnimationFrame(() => this.gameLoop());
+  }
+
+  private checkMultiplayerHits(): void {
+    if (!this.networkPlayer || !this.isMultiplayer) return;
+    
+    const networkPos = this.networkPlayer.getPosition();
+    
+    // Check projectiles against network player
+    for (let i = this.projectiles.length - 1; i >= 0; i--) {
+      const proj = this.projectiles[i];
+      const projPos = proj.getPosition();
+      
+      // Simple distance check (hit radius)
+      const dist = projPos.distanceTo(networkPos);
+      if (dist < 1.5) { // Hit radius for player
+        // Send hit to opponent
+        this.multiplayerManager?.sendHit(proj.getDamage());
+        
+        // Remove projectile
+        proj.destroy();
+        this.projectiles.splice(i, 1);
+        
+        // Visual feedback
+        this.particleSystem.createExplosion(projPos);
+      }
+    }
   }
 
   private handleVehicleInteraction(): void {

@@ -19,6 +19,7 @@ export class Terrain {
     this.createLake();
     this.createScatteredCover();
     this.createAmbientDetails();
+    this.createBillboards();
   }
 
   private createTerrain(): void {
@@ -428,6 +429,70 @@ export class Terrain {
       
       if (rock.scale.x > 1.3) this.colliders.push(new THREE.Box3().setFromObject(rock));
     }
+  }
+
+  private createBillboards(): void {
+    // Billboard 1 - Left mountain (facing center)
+    this.createBillboard(-60, 80, Math.PI * 0.25);
+    // Billboard 2 - Right mountain (facing center)
+    this.createBillboard(60, -80, Math.PI * 1.25);
+  }
+  
+  private createBillboard(x: number, z: number, rotation: number): void {
+    const groundY = this.getHeightAt(x, z);
+    const group = new THREE.Group();
+    const metalMaterial = new THREE.MeshStandardMaterial({ color: 0x4a4a4a, metalness: 0.5, roughness: 0.5 });
+    
+    // Support poles
+    const poleHeight = 12;
+    [[-4, 0], [4, 0]].forEach(([px, pz]) => {
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.4, poleHeight, 8), metalMaterial);
+      pole.position.set(px, poleHeight / 2, pz);
+      pole.castShadow = true;
+      group.add(pole);
+    });
+    
+    // Cross beam
+    const beam = new THREE.Mesh(new THREE.BoxGeometry(9, 0.4, 0.4), metalMaterial);
+    beam.position.set(0, poleHeight - 1, 0);
+    group.add(beam);
+    
+    // Billboard frame
+    const frameWidth = 12;
+    const frameHeight = 6;
+    const frame = new THREE.Mesh(
+      new THREE.BoxGeometry(frameWidth + 0.5, frameHeight + 0.5, 0.3),
+      new THREE.MeshStandardMaterial({ color: 0x2a2a2a })
+    );
+    frame.position.set(0, poleHeight + frameHeight / 2, 0);
+    group.add(frame);
+    
+    // Billboard surface (placeholder - white for now, will add texture)
+    const billboard = new THREE.Mesh(
+      new THREE.PlaneGeometry(frameWidth, frameHeight),
+      new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide })
+    );
+    billboard.position.set(0, poleHeight + frameHeight / 2, 0.2);
+    billboard.name = 'billboardSurface';
+    group.add(billboard);
+    
+    // Back of billboard
+    const back = new THREE.Mesh(
+      new THREE.PlaneGeometry(frameWidth, frameHeight),
+      new THREE.MeshBasicMaterial({ color: 0x333333, side: THREE.DoubleSide })
+    );
+    back.position.set(0, poleHeight + frameHeight / 2, -0.2);
+    group.add(back);
+    
+    group.position.set(x, groundY, z);
+    group.rotation.y = rotation;
+    this.scene.add(group);
+    
+    // Collision for poles
+    this.colliders.push(new THREE.Box3().setFromCenterAndSize(
+      new THREE.Vector3(x, groundY + poleHeight / 2, z),
+      new THREE.Vector3(10, poleHeight, 2)
+    ));
   }
 
   public getColliders(): THREE.Box3[] {

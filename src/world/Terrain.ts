@@ -87,25 +87,9 @@ export class Terrain {
     
     geometry.computeVertexNormals();
 
-    // Realistic terrain with vertex colors
-    const colors = new Float32Array((this.segments + 1) * (this.segments + 1) * 3);
-    const positions = geometry.attributes.position.array;
-    for (let i = 0; i <= this.segments; i++) {
-      for (let j = 0; j <= this.segments; j++) {
-        const idx = (i * (this.segments + 1) + j) * 3;
-        const height = positions[idx + 2];
-        // Blend green/brown based on height
-        const t = Math.min(1, Math.max(0, (height + 3) / 10));
-        colors[idx] = 0.28 + t * 0.12;     // R
-        colors[idx + 1] = 0.38 + t * 0.08; // G
-        colors[idx + 2] = 0.22 + t * 0.05; // B
-      }
-    }
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
     const material = new THREE.MeshStandardMaterial({
-      vertexColors: true,
-      roughness: 0.92,
+      color: 0x4a6741,
+      roughness: 0.95,
       metalness: 0.0
     });
 
@@ -123,14 +107,14 @@ export class Terrain {
       roughness: 1
     });
     
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 40; i++) {
       const patch = new THREE.Mesh(
-        new THREE.CircleGeometry(2 + Math.random() * 6, 6),
+        new THREE.CircleGeometry(3 + Math.random() * 8, 8),
         dirtMaterial
       );
       patch.rotation.x = -Math.PI / 2;
-      const x = (Math.random() - 0.5) * 280;
-      const z = (Math.random() - 0.5) * 280;
+      const x = (Math.random() - 0.5) * 300;
+      const z = (Math.random() - 0.5) * 300;
       patch.position.set(x, this.getHeightAt(x, z) + 0.02, z);
       this.scene.add(patch);
     }

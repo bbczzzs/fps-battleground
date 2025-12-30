@@ -2,19 +2,20 @@ import * as THREE from 'three';
 import { Enemy } from '../entities/Enemy';
 import { Projectile } from '../entities/Projectile';
 
-interface StaticObject {
-  mesh: THREE.Mesh;
-  type: string;
-  boundingBox: THREE.Box3;
-}
-
 export class CollisionManager {
-  private staticObjects: StaticObject[] = [];
+  private colliders: THREE.Box3[] = [];
   private playerRadius = 0.5;
 
+  // Add a Box3 collider directly
+  public addCollider(box: THREE.Box3): void {
+    this.colliders.push(box);
+  }
+  
+  // Add collider from mesh (legacy support)
   public addStaticObject(mesh: THREE.Mesh, type: string): void {
+    if (type === 'ground') return;
     const boundingBox = new THREE.Box3().setFromObject(mesh);
-    this.staticObjects.push({ mesh, type, boundingBox });
+    this.colliders.push(boundingBox);
   }
 
   public checkPlayerCollision(
@@ -23,28 +24,56 @@ export class CollisionManager {
   ): boolean {
     const newPosition = position.clone().add(movement);
     
-    // Create player bounding sphere at new position
-    const playerSphere = new THREE.Sphere(newPosition, this.playerRadius);
+    // Create player bounding box at new position (not sphere - more accurate)
+    const playerBox = new THREE.Box3().setFromCenterAndSize(
+      new THREE.Vector3(newPosition.x, position.y - 0.5, newPosition.z),
+      new THREE.Vector3(this.playerRadius * 2, 1.6, this.playerRadius * 2)
+    );
 
-    for (const obj of this.staticObjects) {
-      if (obj.type === 'ground') continue;
-      
-      // Check intersection with bounding box
-      if (this.sphereIntersectsBox(playerSphere, obj.boundingBox)) {
+    for (const collider of this.colliders) {
+      if (playerBox.intersectsBox(collider)) {
         return true;
       }
     }
 
     return false;
   }
-
-  private sphereIntersectsBox(sphere: THREE.Sphere, box: THREE.Box3): boolean {
-    // Find closest point on box to sphere center
-    const closestPoint = new THREE.Vector3();
-    box.clampPoint(sphere.center, closestPoint);
+  
+  // Check X and Z movement separately for sliding along walls
+  public checkPlayerCollisionAxis(
+    position: THREE.Vector3,
+    movementX: number,
+    movementZ: number
+  ): { canMoveX: boolean; canMoveZ: boolean } {
+    const result = { canMoveX: true, canMoveZ: true };
     
-    // Check if closest point is within sphere radius
-    return closestPoint.distanceToSquared(sphere.center) <= sphere.radius * sphere.radius;
+    // Check X movement
+    const testBoxX = new THREE.Box3().setFromCenterAndSize(
+      new THREE.Vector3(position.x + movementX, position.y - 0.5, position.z),
+      new THREE.Vector3(this.playerRadius * 2, 1.6, this.playerRadius * 2)
+    );
+    
+    for (const collider of this.colliders) {
+      if (testBoxX.intersectsBox(collider)) {
+        result.canMoveX = false;
+        break;
+      }
+    }
+    
+    // Check Z movement
+    const testBoxZ = new THREE.Box3().setFromCenterAndSize(
+      new THREE.Vector3(position.x, position.y - 0.5, position.z + movementZ),
+      new THREE.Vector3(this.playerRadius * 2, 1.6, this.playerRadius * 2)
+    );
+    
+    for (const collider of this.colliders) {
+      if (testBoxZ.intersectsBox(collider)) {
+        result.canMoveZ = false;
+        break;
+      }
+    }
+    
+    return result;
   }
 
   public checkProjectileHit(projectile: Projectile, enemy: Enemy): boolean {
@@ -61,12 +90,12 @@ export class CollisionManager {
     origin: THREE.Vector3, 
     direction: THREE.Vector3, 
     maxDistance: number = 100
-  ): { point: THREE.Vector3; distance: number; object: THREE.Mesh } | null {
+  ): { point: THREE.Vector3; distance: number } | null {
     const ray = new THREE.Ray(origin, direction.normalize());
-    let closestHit: { point: THREE.Vector3; distance: number; object: THREE.Mesh } | null = null;
+    let closestHit: { point: THREE.Vector3; distance: number } | null = null;
 
-    for (const obj of this.staticObjects) {
-      const intersection = ray.intersectBox(obj.boundingBox, new THREE.Vector3());
+    for (const collider of this.colliders) {
+      const intersection = ray.intersectBox(collider, new THREE.Vector3());
       
       if (intersection) {
         const distance = origin.distanceTo(intersection);
@@ -74,13 +103,16 @@ export class CollisionManager {
         if (distance <= maxDistance && (!closestHit || distance < closestHit.distance)) {
           closestHit = {
             point: intersection,
-            distance: distance,
-            object: obj.mesh
+            distance: distance
           };
         }
       }
     }
 
     return closestHit;
+  }
+  
+  public getColliders(): THREE.Box3[] {
+    return this.colliders;
   }
 }

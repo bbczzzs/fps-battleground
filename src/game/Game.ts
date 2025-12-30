@@ -84,11 +84,9 @@ export class Game {
     this.combatEffects = new CombatEffects();
     this.ambientSystem = new AmbientSystem();
 
-    // Add terrain colliders
+    // Add terrain colliders directly to collision manager
     this.terrain.getColliders().forEach(box => {
-      const mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1));
-      mesh.position.copy(box.getCenter(new THREE.Vector3()));
-      this.collisionManager.addStaticObject(mesh, 'obstacle');
+      this.collisionManager.addCollider(box.clone());
     });
 
     // Connect player to terrain for ground collision

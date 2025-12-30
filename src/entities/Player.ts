@@ -79,12 +79,12 @@ export class Player {
     const right = new THREE.Vector3();
     right.crossVectors(cameraDirection, new THREE.Vector3(0, 1, 0)).normalize();
 
-    const moveX = right.x * this.direction.x + cameraDirection.x * -this.direction.z;
-    const moveZ = right.z * this.direction.x + cameraDirection.z * -this.direction.z;
+    const moveDirX = right.x * this.direction.x + cameraDirection.x * -this.direction.z;
+    const moveDirZ = right.z * this.direction.x + cameraDirection.z * -this.direction.z;
 
     // Apply movement
-    this.velocity.x = moveX * this.moveSpeed;
-    this.velocity.z = moveZ * this.moveSpeed;
+    this.velocity.x = moveDirX * this.moveSpeed;
+    this.velocity.z = moveDirZ * this.moveSpeed;
 
     // Jumping
     if (input.keys.jump && this.isGrounded) {
@@ -116,15 +116,21 @@ export class Player {
       this.isGrounded = true;
     }
 
-    // Check obstacle collision
-    const horizontalMovement = new THREE.Vector3(
-      this.velocity.x * delta,
-      0,
-      this.velocity.z * delta
+    // Check obstacle collision with wall sliding
+    const moveX = this.velocity.x * delta;
+    const moveZ = this.velocity.z * delta;
+    
+    const collisionResult = collision.checkPlayerCollisionAxis(
+      this.camera.position,
+      moveX,
+      moveZ
     );
-
-    if (!collision.checkPlayerCollision(this.camera.position, horizontalMovement)) {
+    
+    // Apply movement only on allowed axes (wall sliding)
+    if (collisionResult.canMoveX) {
       this.camera.position.x = newPosition.x;
+    }
+    if (collisionResult.canMoveZ) {
       this.camera.position.z = newPosition.z;
     }
 

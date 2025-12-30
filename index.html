@@ -698,6 +698,102 @@
         z-index: 100;
         overflow: hidden;
       }
+
+      /* Compass Bar - Top Center */
+      #compass-bar {
+        position: fixed;
+        top: 15px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      #compass-strip {
+        width: 400px;
+        height: 30px;
+        background: rgba(0, 0, 0, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 3px;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      #compass-inner {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        font-family: 'Rajdhani', sans-serif;
+        font-weight: 600;
+        transition: transform 0.05s linear;
+      }
+      
+      .compass-tick {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 100%;
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 12px;
+      }
+      
+      .compass-tick.cardinal {
+        color: #ff4444;
+        font-size: 16px;
+        font-weight: 700;
+      }
+      
+      .compass-tick.major {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 14px;
+      }
+      
+      #compass-indicator {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 2px;
+        height: 100%;
+        background: #ff4444;
+        z-index: 2;
+      }
+      
+      #compass-indicator::before {
+        content: '';
+        position: absolute;
+        top: -6px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-top: 6px solid #ff4444;
+      }
+      
+      #compass-degree {
+        margin-top: 5px;
+        font-family: 'Orbitron', monospace;
+        font-size: 14px;
+        color: #fff;
+        text-shadow: 0 0 10px rgba(0,0,0,0.8);
+        letter-spacing: 2px;
+      }
+      
+      #player-coords {
+        margin-top: 2px;
+        font-family: 'Rajdhani', sans-serif;
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.6);
+        letter-spacing: 1px;
+      }
       
       #minimap-player {
         position: absolute;
@@ -998,6 +1094,16 @@
     <div id="minimap">
       <span id="compass">N</span>
       <div id="minimap-player"></div>
+    </div>
+    
+    <!-- Compass Bar (Top Center) -->
+    <div id="compass-bar">
+      <div id="compass-strip">
+        <div id="compass-indicator"></div>
+        <div id="compass-inner"></div>
+      </div>
+      <div id="compass-degree">0°</div>
+      <div id="player-coords">X: 0 | Z: 0</div>
     </div>
     
     <script type="module" src="/src/main.ts"></script>

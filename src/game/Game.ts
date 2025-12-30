@@ -454,6 +454,65 @@ export class Game {
 
     const killsValue = document.getElementById('kills-value');
     if (killsValue) killsValue.textContent = this.kills.toString();
+    
+    // Update compass
+    this.updateCompass();
+  }
+  
+  private updateCompass(): void {
+    const compassInner = document.getElementById('compass-inner');
+    const compassDegree = document.getElementById('compass-degree');
+    const playerCoords = document.getElementById('player-coords');
+    
+    if (!compassInner || !compassDegree || !playerCoords) return;
+    
+    // Get player rotation (yaw)
+    const direction = new THREE.Vector3();
+    this.camera.getWorldDirection(direction);
+    let angle = Math.atan2(direction.x, direction.z);
+    let degrees = THREE.MathUtils.radToDeg(angle);
+    if (degrees < 0) degrees += 360;
+    
+    // Update degree display
+    compassDegree.textContent = Math.round(degrees) + '°';
+    
+    // Update coordinates
+    const pos = this.camera.position;
+    playerCoords.textContent = `X: ${Math.round(pos.x)} | Z: ${Math.round(pos.z)}`;
+    
+    // Generate compass ticks if not already done
+    if (compassInner.children.length === 0) {
+      const labels = ['N', '15', '30', '45', 'NE', '60', '75', '90', 'E', '105', '120', '135', 'SE', '150', '165', '180', 
+                      'S', '195', '210', '225', 'SW', '240', '255', '270', 'W', '285', '300', '315', 'NW', '330', '345', '360'];
+      
+      // Create double set for seamless scrolling
+      for (let j = 0; j < 2; j++) {
+        for (let i = 0; i < labels.length; i++) {
+          const tick = document.createElement('div');
+          tick.className = 'compass-tick';
+          const label = labels[i];
+          
+          if (['N', 'E', 'S', 'W'].includes(label)) {
+            tick.classList.add('cardinal');
+          } else if (['NE', 'SE', 'SW', 'NW'].includes(label)) {
+            tick.classList.add('major');
+          }
+          
+          tick.textContent = label;
+          compassInner.appendChild(tick);
+        }
+      }
+    }
+    
+    // Calculate offset (40px per 15 degrees = tick width)
+    const ticksPerDegree = 40 / 15;
+    const offset = degrees * ticksPerDegree;
+    const stripWidth = 400;
+    const totalWidth = 32 * 40; // 32 ticks * 40px
+    
+    // Center the compass and apply offset
+    const centerOffset = stripWidth / 2;
+    compassInner.style.transform = `translateX(${centerOffset - offset}px)`;
   }
 
   private onResize(): void {

@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Listen for start from other player
   multiplayer.onEvent((event) => {
-    if (event.type === 'start') {
+    if (event.t === 'start') {
       if (lobbyEl) lobbyEl.style.display = 'none';
       startGame(true);
     }

@@ -1,18 +1,17 @@
 import Peer, { DataConnection } from 'peerjs';
-import * as THREE from 'three';
 
 export interface PlayerState {
-  position: { x: number; y: number; z: number };
-  rotation: { x: number; y: number; z: number };
-  health: number;
-  isShooting: boolean;
-  weaponType: string;
+  x: number;
+  y: number;
+  z: number;
+  r: number; // yaw rotation only
+  h: number; // health
+  s: number; // shooting (0 or 1)
 }
 
 export interface GameMessage {
-  type: 'state' | 'shoot' | 'hit' | 'death' | 'respawn' | 'chat' | 'ready' | 'start' | 'win';
-  data: any;
-  timestamp: number;
+  t: string; // type (shortened)
+  d: any; // data
 }
 
 export type ConnectionCallback = (connected: boolean, isHost: boolean) => void;
@@ -33,10 +32,12 @@ export class MultiplayerManager {
   private onStateUpdate: StateCallback | null = null;
   private onGameEvent: EventCallback | null = null;
 
-  // State sync
+  // State sync - optimized
   private lastSentState: PlayerState | null = null;
-  private sendInterval: number | null = null;
-  // Sync rate is 50ms between state updates
+  private lastX = 0;
+  private lastY = 0;
+  private lastZ = 0;
+  private lastR = 0;
 
   constructor() {
     // Generate player name
@@ -97,7 +98,7 @@ export class MultiplayerManager {
           this.startStateSync();
           
           // Send player name
-          this.sendMessage({ type: 'chat', data: { name: this.playerName }, timestamp: Date.now() });
+          this.sendMessage({ t: 'chat', d: { name: this.playerName } });
           
           if (this.onConnectionChange) {
             this.onConnectionChange(true, false);
@@ -137,7 +138,7 @@ export class MultiplayerManager {
       this.startStateSync();
 
       // Send player name
-      this.sendMessage({ type: 'chat', data: { name: this.playerName }, timestamp: Date.now() });
+      this.sendMessage({ t: 'chat', d: { name: this.playerName } });
 
       if (this.onConnectionChange) {
         this.onConnectionChange(true, true);
@@ -166,15 +167,15 @@ export class MultiplayerManager {
   }
 
   private handleMessage(message: GameMessage): void {
-    switch (message.type) {
-      case 'state':
+    switch (message.t) {
+      case 's': // state
         if (this.onStateUpdate) {
-          this.onStateUpdate(message.data as PlayerState);
+          this.onStateUpdate(message.d as PlayerState);
         }
         break;
-      case 'chat':
-        if (message.data.name) {
-          this.opponentName = message.data.name;
+      case 'c': // chat
+        if (message.d.name) {
+          this.opponentName = message.d.name;
         }
         break;
       default:
@@ -186,9 +187,7 @@ export class MultiplayerManager {
   }
 
   private startStateSync(): void {
-    if (this.sendInterval) {
-      clearInterval(this.sendInterval);
-    }
+    // No interval needed - we send on demand
   }
 
   public sendState(state: PlayerState): void {
@@ -197,88 +196,57 @@ export class MultiplayerManager {
     // Only send if state has changed significantly
     if (this.hasStateChanged(state)) {
       this.sendMessage({
-        type: 'state',
-        data: state,
-        timestamp: Date.now()
+        t: 's',
+        d: state
       });
       this.lastSentState = { ...state };
+      this.lastX = state.x;
+      this.lastY = state.y;
+      this.lastZ = state.z;
+      this.lastR = state.r;
     }
   }
 
   private hasStateChanged(state: PlayerState): boolean {
-    if (!this.lastSentState) return true;
-
+    // Use threshold-based change detection
+    const posThreshold = 0.05;
+    const rotThreshold = 0.02;
+    
     const posChanged = 
-      Math.abs(state.position.x - this.lastSentState.position.x) > 0.01 ||
-      Math.abs(state.position.y - this.lastSentState.position.y) > 0.01 ||
-      Math.abs(state.position.z - this.lastSentState.position.z) > 0.01;
+      Math.abs(state.x - this.lastX) > posThreshold ||
+      Math.abs(state.y - this.lastY) > posThreshold ||
+      Math.abs(state.z - this.lastZ) > posThreshold;
 
-    const rotChanged = 
-      Math.abs(state.rotation.y - this.lastSentState.rotation.y) > 0.01;
-
-    const healthChanged = state.health !== this.lastSentState.health;
-    const shootingChanged = state.isShooting !== this.lastSentState.isShooting;
+    const rotChanged = Math.abs(state.r - this.lastR) > rotThreshold;
+    
+    const healthChanged = !this.lastSentState || state.h !== this.lastSentState.h;
+    const shootingChanged = !this.lastSentState || state.s !== this.lastSentState.s;
 
     return posChanged || rotChanged || healthChanged || shootingChanged;
   }
 
-  public sendShoot(direction: THREE.Vector3, damage: number): void {
-    this.sendMessage({
-      type: 'shoot',
-      data: { 
-        direction: { x: direction.x, y: direction.y, z: direction.z },
-        damage 
-      },
-      timestamp: Date.now()
-    });
-  }
-
   public sendHit(damage: number): void {
-    this.sendMessage({
-      type: 'hit',
-      data: { damage },
-      timestamp: Date.now()
-    });
+    this.sendMessage({ t: 'hit', d: { damage } });
   }
 
   public sendDeath(): void {
-    this.sendMessage({
-      type: 'death',
-      data: {},
-      timestamp: Date.now()
-    });
+    this.sendMessage({ t: 'death', d: {} });
   }
 
-  public sendRespawn(position: THREE.Vector3): void {
-    this.sendMessage({
-      type: 'respawn',
-      data: { position: { x: position.x, y: position.y, z: position.z } },
-      timestamp: Date.now()
-    });
+  public sendRespawn(x: number, y: number, z: number): void {
+    this.sendMessage({ t: 'respawn', d: { x, y, z } });
   }
 
   public sendWin(kills: number): void {
-    this.sendMessage({
-      type: 'win',
-      data: { kills },
-      timestamp: Date.now()
-    });
+    this.sendMessage({ t: 'win', d: { kills } });
   }
 
   public sendReady(): void {
-    this.sendMessage({
-      type: 'ready',
-      data: {},
-      timestamp: Date.now()
-    });
+    this.sendMessage({ t: 'ready', d: {} });
   }
 
   public sendStart(): void {
-    this.sendMessage({
-      type: 'start',
-      data: {},
-      timestamp: Date.now()
-    });
+    this.sendMessage({ t: 'start', d: {} });
   }
 
   private sendMessage(message: GameMessage): void {
@@ -335,9 +303,6 @@ export class MultiplayerManager {
   }
 
   public disconnect(): void {
-    if (this.sendInterval) {
-      clearInterval(this.sendInterval);
-    }
     if (this.connection) {
       this.connection.close();
     }

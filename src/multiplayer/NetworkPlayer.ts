@@ -8,10 +8,13 @@ export class NetworkPlayer {
   private maxHealth = 100;
   private targetPosition = new THREE.Vector3();
   private targetRotation = new THREE.Euler();
-  private interpolationSpeed = 15;
+  private previousPosition = new THREE.Vector3();
+  private velocity = new THREE.Vector3();
   private isShooting = false;
   private lastShootTime = 0;
   private muzzleFlash: THREE.PointLight;
+  private lastUpdateTime = 0;
+  private updateInterval = 0;
 
   constructor(scene: THREE.Scene, name: string = 'Enemy') {
     this.scene = scene;
@@ -140,10 +143,18 @@ export class NetworkPlayer {
   }
 
   public update(delta: number, cameraPosition: THREE.Vector3): void {
-    // Interpolate position
-    this.mesh.position.lerp(this.targetPosition, this.interpolationSpeed * delta);
+    // Predict position using velocity extrapolation for smoother movement
+    const predictedPosition = this.targetPosition.clone().add(
+      this.velocity.clone().multiplyScalar(delta)
+    );
     
-    // Interpolate rotation (only Y axis for body)
+    // Smooth interpolation with adaptive speed based on distance
+    const distance = this.mesh.position.distanceTo(predictedPosition);
+    const interpSpeed = Math.min(20, Math.max(8, distance * 10));
+    
+    this.mesh.position.lerp(predictedPosition, interpSpeed * delta);
+    
+    // Smooth rotation interpolation
     const currentY = this.mesh.rotation.y;
     const targetY = this.targetRotation.y;
     let diff = targetY - currentY;
@@ -152,7 +163,7 @@ export class NetworkPlayer {
     while (diff > Math.PI) diff -= Math.PI * 2;
     while (diff < -Math.PI) diff += Math.PI * 2;
     
-    this.mesh.rotation.y += diff * this.interpolationSpeed * delta;
+    this.mesh.rotation.y += diff * 12 * delta;
 
     // Face name tag and health bar towards camera
     const lookDir = new THREE.Vector3().subVectors(cameraPosition, this.mesh.position);
@@ -177,6 +188,18 @@ export class NetworkPlayer {
   }
 
   public setTargetState(position: THREE.Vector3, rotation: THREE.Euler): void {
+    // Calculate velocity from position delta for prediction
+    const now = Date.now();
+    if (this.lastUpdateTime > 0) {
+      this.updateInterval = now - this.lastUpdateTime;
+      if (this.updateInterval > 0) {
+        this.velocity.subVectors(position, this.targetPosition)
+          .multiplyScalar(1000 / this.updateInterval);
+      }
+    }
+    this.lastUpdateTime = now;
+    
+    this.previousPosition.copy(this.targetPosition);
     this.targetPosition.copy(position);
     this.targetRotation.copy(rotation);
   }
@@ -184,6 +207,7 @@ export class NetworkPlayer {
   public setPosition(position: THREE.Vector3): void {
     this.mesh.position.copy(position);
     this.targetPosition.copy(position);
+    this.velocity.set(0, 0, 0);
   }
 
   public shoot(): void {

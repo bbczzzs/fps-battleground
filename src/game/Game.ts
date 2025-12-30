@@ -471,27 +471,27 @@ export class Game {
   private setupMultiplayerCallbacks(): void {
     if (!this.multiplayerManager) return;
     
-    // Receive opponent state updates
+    // Receive opponent state updates (compact format)
     this.multiplayerManager.onState((state: PlayerState) => {
       if (this.networkPlayer) {
         this.networkPlayer.setTargetState(
-          new THREE.Vector3(state.position.x, state.position.y, state.position.z),
-          new THREE.Euler(state.rotation.x, state.rotation.y, state.rotation.z)
+          new THREE.Vector3(state.x, state.y, state.z),
+          new THREE.Euler(0, state.r, 0)
         );
-        this.networkPlayer.setHealth(state.health);
+        this.networkPlayer.setHealth(state.h);
         
-        if (state.isShooting) {
+        if (state.s === 1) {
           this.networkPlayer.shoot();
         }
       }
     });
     
-    // Receive game events
+    // Receive game events (compact format)
     this.multiplayerManager.onEvent((event: GameMessage) => {
-      switch (event.type) {
+      switch (event.t) {
         case 'hit':
           // I got hit by opponent
-          this.player.takeDamage(event.data.damage);
+          this.player.takeDamage(event.d.damage);
           // Visual damage feedback
           
           if (this.player.getHealth() <= 0) {
@@ -510,9 +510,9 @@ export class Game {
           // Opponent respawned
           if (this.networkPlayer) {
             this.networkPlayer.respawn(new THREE.Vector3(
-              event.data.position.x,
-              event.data.position.y,
-              event.data.position.z
+              event.d.x,
+              event.d.y,
+              event.d.z
             ));
           }
           break;
@@ -539,7 +539,7 @@ export class Game {
       this.player.heal(100);
       
       // Notify opponent of respawn
-      this.multiplayerManager?.sendRespawn(spawnPos);
+      this.multiplayerManager?.sendRespawn(spawnPos.x, spawnPos.y, spawnPos.z);
     }, 2000);
   }
 
@@ -590,12 +590,14 @@ export class Game {
     const dir = this.player.getDirection();
     const yaw = Math.atan2(dir.x, dir.z);
     
+    // Compact state format for less network overhead
     const state: PlayerState = {
-      position: { x: pos.x, y: pos.y, z: pos.z },
-      rotation: { x: 0, y: yaw, z: 0 },
-      health: this.player.getHealth(),
-      isShooting: this.inputManager.isMouseDown,
-      weaponType: this.multiWeapon.getCurrentWeaponType()
+      x: Math.round(pos.x * 100) / 100,
+      y: Math.round(pos.y * 100) / 100,
+      z: Math.round(pos.z * 100) / 100,
+      r: Math.round(yaw * 100) / 100,
+      h: Math.round(this.player.getHealth()),
+      s: this.inputManager.isMouseDown ? 1 : 0
     };
     
     this.multiplayerManager.sendState(state);

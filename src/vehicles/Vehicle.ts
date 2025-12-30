@@ -496,11 +496,11 @@ export class Vehicle {
   public getCameraOffset(): THREE.Vector3 {
     switch (this.type) {
       case VehicleType.CAR:
-        return new THREE.Vector3(0, 3, -8);
+        return new THREE.Vector3(0, 2, -4);
       case VehicleType.HELICOPTER:
-        return new THREE.Vector3(0, 5, -12);
+        return new THREE.Vector3(0, 2.5, -5);
       case VehicleType.PLANE:
-        return new THREE.Vector3(0, 4, -15);
+        return new THREE.Vector3(0, 2, -6);
     }
   }
 

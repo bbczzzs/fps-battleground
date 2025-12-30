@@ -123,8 +123,8 @@ export class Game {
     // Spawn helicopters
     this.spawnHelicopters();
     
-    // Spawn power-ups
-    this.spawnPowerUps();
+    // Power-ups disabled
+    // this.spawnPowerUps();
     
     // Setup weapon switching
     this.setupWeaponSwitching();
@@ -202,23 +202,6 @@ export class Game {
       enemy.setColliders(colliders);
       
       this.enemies.push(enemy);
-    }
-  }
-  
-  private spawnPowerUps(): void {
-    const powerUpTypes: PowerUpType[] = ['health', 'ammo', 'speed', 'shield', 'damage'];
-    
-    // Spawn power-ups around the map
-    for (let i = 0; i < 10; i++) {
-      const angle = (i / 10) * Math.PI * 2;
-      const distance = 25 + Math.random() * 40;
-      const type = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
-      const x = Math.cos(angle) * distance;
-      const z = Math.sin(angle) * distance;
-      const y = this.terrain.getHeightAt(x, z);
-      
-      const powerUp = new PowerUp(this.scene, new THREE.Vector3(x, y, z), type);
-      this.powerUps.push(powerUp);
     }
   }
   

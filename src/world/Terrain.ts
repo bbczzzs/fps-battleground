@@ -433,12 +433,12 @@ export class Terrain {
 
   private createBillboards(): void {
     // Billboard 1 - Left hill peak (visible from spawn)
-    this.createBillboard(-45, 55, Math.PI * 0);
+    this.createBillboard(-45, 55, Math.PI * 0, '/images/billboard1.jpg');
     // Billboard 2 - Right hill peak (visible from spawn)
-    this.createBillboard(50, 55, Math.PI * 0);
+    this.createBillboard(50, 55, Math.PI * 0, '/images/billboard2.jpg');
   }
   
-  private createBillboard(x: number, z: number, rotation: number): void {
+  private createBillboard(x: number, z: number, rotation: number, imagePath: string): void {
     const groundY = this.getHeightAt(x, z);
     const group = new THREE.Group();
     const metalMaterial = new THREE.MeshStandardMaterial({ color: 0x4a4a4a, metalness: 0.5, roughness: 0.5 });
@@ -467,14 +467,22 @@ export class Terrain {
     frame.position.set(0, poleHeight + frameHeight / 2, 0);
     group.add(frame);
     
-    // Billboard surface (placeholder - white for now, will add texture)
+    // Billboard surface with texture
+    const textureLoader = new THREE.TextureLoader();
+    const billboardMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
     const billboard = new THREE.Mesh(
       new THREE.PlaneGeometry(frameWidth, frameHeight),
-      new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide })
+      billboardMaterial
     );
     billboard.position.set(0, poleHeight + frameHeight / 2, 0.2);
-    billboard.name = 'billboardSurface';
     group.add(billboard);
+    
+    // Load texture asynchronously
+    textureLoader.load(imagePath, (texture) => {
+      texture.colorSpace = THREE.SRGBColorSpace;
+      billboardMaterial.map = texture;
+      billboardMaterial.needsUpdate = true;
+    });
     
     // Back of billboard
     const back = new THREE.Mesh(

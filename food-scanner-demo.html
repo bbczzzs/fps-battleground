@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScanIt - Food Health Scanner</title>
+    <script src="https://unpkg.com/@ericblade/quagga2@1.8.4/dist/quagga.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f7;
+            min-height: 100vh;
+            color: #1d1d1f;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1d1d1f;
+        }
+
+        .logo span {
+            color: #34c759;
+        }
+
+        .tagline {
+            color: #86868b;
+            margin-top: 5px;
+        }
+
+        .scanner-section {
+            background: #fff;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+
+        .scanner-box {
+            background: #000;
+            border-radius: 16px;
+            height: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #scanner-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 16px;
+        }
+
+        .scanner-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .scan-line {
+            width: 70%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #34c759, transparent);
+            animation: scan 2s ease-in-out infinite;
+            border-radius: 2px;
+            box-shadow: 0 0 20px #34c759;
+        }
+
+        @keyframes scan {
+            0%, 100% { transform: translateY(-60px); opacity: 0.5; }
+            50% { transform: translateY(60px); opacity: 1; }
+        }
+
+        .scanner-placeholder {
+            color: #fff;
+            text-align: center;
+        }
+
+        .scanner-placeholder-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 15px;
+        }
+
+        .btn-primary {
+            background: #34c759;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #2db84d;
+            transform: scale(1.02);
+        }
+
+        .btn-secondary {
+            background: #e5e5ea;
+            color: #1d1d1f;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            color: #86868b;
+            font-size: 0.9rem;
+        }
+
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e5e5ea;
+        }
+
+        .divider span {
+            padding: 0 15px;
+        }
+
+        .manual-input {
+            display: flex;
+            gap: 10px;
+        }
+
+        .manual-input input {
+            flex: 1;
+            padding: 14px 16px;
+            border: 2px solid #e5e5ea;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .manual-input input:focus {
+            outline: none;
+            border-color: #34c759;
+        }
+
+        .manual-input button {
+            padding: 14px 24px;
+            background: #1d1d1f;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Results */
+        .result-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            display: none;
+        }
+
+        .result-card.show {
+            display: block;
+            animation: slideUp 0.4s ease;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .product-header {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .product-image {
+            width: 80px;
+            height: 80px;
+            background: #f5f5f7;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+        }
+
+        .product-info {
+            flex: 1;
+        }
+
+        .product-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .product-brand {
+            color: #86868b;
+            font-size: 0.95rem;
+        }
+
+        .health-score {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+        }
+
+        .health-score.good {
+            background: linear-gradient(135deg, #d4f5dc, #e8f9ec);
+        }
+
+        .health-score.okay {
+            background: linear-gradient(135deg, #fff3d4, #fff9e8);
+        }
+
+        .health-score.bad {
+            background: linear-gradient(135deg, #ffd4d4, #ffe8e8);
+        }
+
+        .score-circle {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .health-score.good .score-circle { background: #34c759; }
+        .health-score.okay .score-circle { background: #ff9500; }
+        .health-score.bad .score-circle { background: #ff3b30; }
+
+        .score-text h3 {
+            font-size: 1.1rem;
+            margin-bottom: 3px;
+        }
+
+        .score-text p {
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        .verdict {
+            background: #f5f5f7;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .verdict strong {
+            color: #1d1d1f;
+        }
+
+        .section-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #86868b;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .nutrients-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .nutrient-item {
+            background: #f5f5f7;
+            border-radius: 12px;
+            padding: 12px 15px;
+        }
+
+        .nutrient-label {
+            font-size: 0.85rem;
+            color: #86868b;
+        }
+
+        .nutrient-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-top: 3px;
+        }
+
+        .nutrient-item.warning .nutrient-value {
+            color: #ff9500;
+        }
+
+        .nutrient-item.danger .nutrient-value {
+            color: #ff3b30;
+        }
+
+        .ingredients-section {
+            margin-bottom: 20px;
+        }
+
+        .ingredient-tag {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin: 3px;
+        }
+
+        .ingredient-tag.good {
+            background: #d4f5dc;
+            color: #1e7a34;
+        }
+
+        .ingredient-tag.neutral {
+            background: #e5e5ea;
+            color: #555;
+        }
+
+        .ingredient-tag.bad {
+            background: #ffd4d4;
+            color: #c0392b;
+        }
+
+        .alternative-section {
+            border-top: 1px solid #e5e5ea;
+            padding-top: 20px;
+        }
+
+        .alternative-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #f5f5f7;
+            border-radius: 12px;
+            margin-top: 10px;
+        }
+
+        .alternative-icon {
+            font-size: 1.5rem;
+        }
+
+        .alternative-info {
+            flex: 1;
+        }
+
+        .alternative-name {
+            font-weight: 600;
+        }
+
+        .alternative-reason {
+            font-size: 0.85rem;
+            color: #86868b;
+        }
+
+        .alternative-score {
+            background: #34c759;
+            color: #fff;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .demo-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .demo-btn {
+            flex: 1;
+            min-width: 140px;
+            padding: 12px;
+            background: #f5f5f7;
+            border: 2px solid #e5e5ea;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .demo-btn:hover {
+            border-color: #34c759;
+            background: #e8f9ec;
+        }
+
+        .demo-btn-icon {
+            font-size: 1.5rem;
+        }
+
+        .demo-btn-text {
+            font-size: 0.85rem;
+            color: #555;
+            margin-top: 5px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e5e5ea;
+            border-top-color: #34c759;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">Scan<span>It</span></div>
+            <p class="tagline">Know what you're really eating</p>
+        </header>
+
+        <div class="scanner-section">
+            <div class="scanner-box" id="scannerBox">
+                <div class="scanner-placeholder" id="placeholder">
+                    <div class="scanner-placeholder-icon">📷</div>
+                    <p>Tap to start camera</p>
+                </div>
+                <video id="scanner-video" style="display: none;"></video>
+                <div class="scanner-overlay" id="scanOverlay" style="display: none;">
+                    <div class="scan-line"></div>
+                </div>
+            </div>
+            
+            <button class="btn btn-primary" id="startScanBtn" onclick="startCamera()">
+                📷 Start Scanning
+            </button>
+
+            <div class="divider"><span>or try a demo product</span></div>
+
+            <div class="demo-buttons">
+                <div class="demo-btn" onclick="showProduct('coke')">
+                    <div class="demo-btn-icon">🥤</div>
+                    <div class="demo-btn-text">Coca-Cola</div>
+                </div>
+                <div class="demo-btn" onclick="showProduct('oreo')">
+                    <div class="demo-btn-icon">🍪</div>
+                    <div class="demo-btn-text">Oreo</div>
+                </div>
+                <div class="demo-btn" onclick="showProduct('apple')">
+                    <div class="demo-btn-icon">🍎</div>
+                    <div class="demo-btn-text">Apple</div>
+                </div>
+                <div class="demo-btn" onclick="showProduct('chips')">
+                    <div class="demo-btn-icon">🍟</div>
+                    <div class="demo-btn-text">Lay's Chips</div>
+                </div>
+            </div>
+
+            <div class="divider"><span>or enter barcode</span></div>
+
+            <div class="manual-input">
+                <input type="text" id="barcodeInput" placeholder="Enter barcode number">
+                <button onclick="searchBarcode()">Search</button>
+            </div>
+        </div>
+
+        <div class="result-card" id="resultCard">
+            <!-- Results will be injected here -->
+        </div>
+    </div>
+
+    <script>
+        const products = {
+            coke: {
+                name: "Coca-Cola Classic",
+                brand: "The Coca-Cola Company",
+                icon: "🥤",
+                score: 18,
+                rating: "bad",
+                ratingText: "Poor Choice",
+                ratingDesc: "High in sugar, no nutritional value",
+                verdict: "This 330ml can contains <strong>35g of sugar</strong> — that's almost 9 teaspoons, more than your entire recommended daily limit. It's basically liquid candy with zero nutritional benefits.",
+                nutrients: [
+                    { label: "Calories", value: "140 kcal", status: "warning" },
+                    { label: "Sugar", value: "35g", status: "danger" },
+                    { label: "Sodium", value: "45mg", status: "" },
+                    { label: "Protein", value: "0g", status: "" }
+                ],
+                ingredients: [
+                    { name: "Carbonated Water", status: "neutral" },
+                    { name: "High Fructose Corn Syrup", status: "bad" },
+                    { name: "Caramel Color", status: "bad" },
+                    { name: "Phosphoric Acid", status: "bad" },
+                    { name: "Natural Flavors", status: "neutral" },
+                    { name: "Caffeine", status: "neutral" }
+                ],
+                alternative: {
+                    name: "Sparkling Water + Lemon",
+                    icon: "🍋",
+                    reason: "Zero sugar, same fizz satisfaction",
+                    score: 95
+                }
+            },
+            oreo: {
+                name: "Oreo Original",
+                brand: "Nabisco / Mondelez",
+                icon: "🍪",
+                score: 25,
+                rating: "bad",
+                ratingText: "Poor Choice",
+                ratingDesc: "Ultra-processed, high sugar & fat",
+                verdict: "Three cookies contain <strong>14g of sugar</strong> and are made with refined flour and palm oil. The \"creme\" filling is mostly sugar and fat with zero dairy. It's engineered to be addictive.",
+                nutrients: [
+                    { label: "Calories", value: "160 kcal", status: "warning" },
+                    { label: "Sugar", value: "14g", status: "danger" },
+                    { label: "Fat", value: "7g", status: "warning" },
+                    { label: "Fiber", value: "0.5g", status: "" }
+                ],
+                ingredients: [
+                    { name: "Refined Wheat Flour", status: "bad" },
+                    { name: "Sugar", status: "bad" },
+                    { name: "Palm Oil", status: "bad" },
+                    { name: "Cocoa Powder", status: "good" },
+                    { name: "High Fructose Corn Syrup", status: "bad" },
+                    { name: "Soy Lecithin", status: "neutral" }
+                ],
+                alternative: {
+                    name: "Dark Chocolate Squares",
+                    icon: "🍫",
+                    reason: "Satisfies sweet craving, has antioxidants",
+                    score: 68
+                }
+            },
+            apple: {
+                name: "Apple (Fresh)",
+                brand: "Nature",
+                icon: "🍎",
+                score: 94,
+                rating: "good",
+                ratingText: "Excellent Choice",
+                ratingDesc: "Whole food, nutrient-dense",
+                verdict: "A medium apple gives you <strong>4g of fiber</strong>, vitamin C, and natural antioxidants. The natural sugars come with fiber, which slows absorption. This is what healthy eating looks like.",
+                nutrients: [
+                    { label: "Calories", value: "95 kcal", status: "" },
+                    { label: "Sugar", value: "19g (natural)", status: "" },
+                    { label: "Fiber", value: "4.4g", status: "" },
+                    { label: "Vitamin C", value: "14%", status: "" }
+                ],
+                ingredients: [
+                    { name: "Apple", status: "good" }
+                ],
+                alternative: null
+            },
+            chips: {
+                name: "Lay's Classic Chips",
+                brand: "Frito-Lay / PepsiCo",
+                icon: "🍟",
+                score: 32,
+                rating: "bad",
+                ratingText: "Poor Choice",
+                ratingDesc: "High sodium, empty calories",
+                verdict: "A small bag packs <strong>170mg of sodium</strong> and 10g of fat, with almost no nutritional value. The \"just 3 ingredients\" marketing hides that it's still deep-fried starch and salt.",
+                nutrients: [
+                    { label: "Calories", value: "160 kcal", status: "warning" },
+                    { label: "Fat", value: "10g", status: "warning" },
+                    { label: "Sodium", value: "170mg", status: "danger" },
+                    { label: "Fiber", value: "1g", status: "" }
+                ],
+                ingredients: [
+                    { name: "Potatoes", status: "good" },
+                    { name: "Vegetable Oil", status: "bad" },
+                    { name: "Salt", status: "neutral" }
+                ],
+                alternative: {
+                    name: "Air-Popped Popcorn",
+                    icon: "🍿",
+                    reason: "Whole grain, way less fat, still crunchy",
+                    score: 72
+                }
+            }
+        };
+
+        function showProduct(productId) {
+            const product = products[productId];
+            const card = document.getElementById('resultCard');
+            
+            card.classList.remove('show');
+            
+            setTimeout(() => {
+                card.innerHTML = `
+                    <div class="product-header">
+                        <div class="product-image">${product.icon}</div>
+                        <div class="product-info">
+                            <div class="product-name">${product.name}</div>
+                            <div class="product-brand">${product.brand}</div>
+                        </div>
+                    </div>
+
+                    <div class="health-score ${product.rating}">
+                        <div class="score-circle">${product.score}</div>
+                        <div class="score-text">
+                            <h3>${product.ratingText}</h3>
+                            <p>${product.ratingDesc}</p>
+                        </div>
+                    </div>
+
+                    <div class="verdict">${product.verdict}</div>
+
+                    <div class="section-title">Nutrition per Serving</div>
+                    <div class="nutrients-grid">
+                        ${product.nutrients.map(n => `
+                            <div class="nutrient-item ${n.status}">
+                                <div class="nutrient-label">${n.label}</div>
+                                <div class="nutrient-value">${n.value}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="ingredients-section">
+                        <div class="section-title">Ingredients Breakdown</div>
+                        ${product.ingredients.map(i => `
+                            <span class="ingredient-tag ${i.status}">${i.name}</span>
+                        `).join('')}
+                    </div>
+
+                    ${product.alternative ? `
+                        <div class="alternative-section">
+                            <div class="section-title">🔄 Healthier Alternative</div>
+                            <div class="alternative-item">
+                                <div class="alternative-icon">${product.alternative.icon}</div>
+                                <div class="alternative-info">
+                                    <div class="alternative-name">${product.alternative.name}</div>
+                                    <div class="alternative-reason">${product.alternative.reason}</div>
+                                </div>
+                                <div class="alternative-score">${product.alternative.score}</div>
+                            </div>
+                        </div>
+                    ` : ''}
+                `;
+                
+                card.classList.add('show');
+                card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+
+        function searchBarcode() {
+            const code = document.getElementById('barcodeInput').value.trim();
+            if (!code) return;
+            
+            // Demo: random product for any barcode
+            const keys = Object.keys(products);
+            const randomProduct = keys[Math.floor(Math.random() * keys.length)];
+            showProduct(randomProduct);
+        }
+
+        async function startCamera() {
+            const video = document.getElementById('scanner-video');
+            const placeholder = document.getElementById('placeholder');
+            const overlay = document.getElementById('scanOverlay');
+            const btn = document.getElementById('startScanBtn');
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment' }
+                });
+                
+                video.srcObject = stream;
+                video.play();
+                video.style.display = 'block';
+                placeholder.style.display = 'none';
+                overlay.style.display = 'flex';
+                btn.textContent = '⏹️ Stop Scanning';
+                btn.onclick = stopCamera;
+
+                // For demo: auto-trigger a result after 3 seconds
+                setTimeout(() => {
+                    const keys = Object.keys(products);
+                    const randomProduct = keys[Math.floor(Math.random() * keys.length)];
+                    showProduct(randomProduct);
+                }, 3000);
+
+            } catch (err) {
+                alert('Camera access denied. Try the demo products below!');
+            }
+        }
+
+        function stopCamera() {
+            const video = document.getElementById('scanner-video');
+            const placeholder = document.getElementById('placeholder');
+            const overlay = document.getElementById('scanOverlay');
+            const btn = document.getElementById('startScanBtn');
+
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+            }
+            
+            video.style.display = 'none';
+            placeholder.style.display = 'block';
+            overlay.style.display = 'none';
+            btn.textContent = '📷 Start Scanning';
+            btn.onclick = startCamera;
+        }
+
+        // Handle enter key on barcode input
+        document.getElementById('barcodeInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') searchBarcode();
+        });
+    </script>
+</body>
+</html>

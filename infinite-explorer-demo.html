@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>∞ Infinite Page Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #00d4ff, #9b59b6, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 1.1rem;
+        }
+
+        .explorer-section {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 30px;
+        }
+
+        @media (max-width: 900px) {
+            .explorer-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .path-input-container {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .path-input-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .path-prefix {
+            color: #00d4ff;
+            font-family: monospace;
+            font-size: 1.1rem;
+        }
+
+        #pathInput {
+            flex: 1;
+            background: rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 15px;
+            color: #fff;
+            font-size: 1.1rem;
+            font-family: monospace;
+            transition: all 0.3s;
+        }
+
+        #pathInput:focus {
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 20px rgba(0,212,255,0.2);
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .btn-explore {
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            color: #000;
+        }
+
+        .btn-explore:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0,212,255,0.3);
+        }
+
+        .btn-random {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: #fff;
+        }
+
+        .btn-random:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(155,89,182,0.3);
+        }
+
+        .btn-bookmark {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: #000;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+        }
+
+        .content-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 30px;
+            min-height: 400px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .content-card.legendary {
+            border: 2px solid gold;
+            box-shadow: 0 0 40px rgba(255,215,0,0.2);
+        }
+
+        .content-card.legendary::before {
+            content: '⭐ LEGENDARY DISCOVERY';
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, #ffd700, #ffaa00);
+            color: #000;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .content-type {
+            display: inline-block;
+            padding: 5px 15px;
+            background: rgba(0,212,255,0.2);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: #00d4ff;
+            margin-bottom: 20px;
+        }
+
+        .content-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            line-height: 1.3;
+        }
+
+        .content-body {
+            line-height: 1.8;
+            color: #ccc;
+        }
+
+        .content-body p {
+            margin-bottom: 15px;
+        }
+
+        .content-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, var(--img-color1), var(--img-color2));
+            border-radius: 12px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+        }
+
+        .content-meta {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .meta-info {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .discovery-feed {
+            background: rgba(255,255,255,0.03);
+            border-radius: 20px;
+            padding: 25px;
+        }
+
+        .feed-title {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .feed-title::before {
+            content: '🌍';
+        }
+
+        .feed-item {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid transparent;
+        }
+
+        .feed-item:hover {
+            background: rgba(0,212,255,0.1);
+            border-color: rgba(0,212,255,0.3);
+            transform: translateX(5px);
+        }
+
+        .feed-item.legendary {
+            border-color: rgba(255,215,0,0.3);
+        }
+
+        .feed-item-path {
+            font-family: monospace;
+            color: #00d4ff;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .feed-item-preview {
+            color: #888;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .feed-item-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 0.75rem;
+            color: #555;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 300px;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: #00d4ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .bookmarks-section {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .suggestion {
+            background: rgba(155,89,182,0.2);
+            border: 1px solid rgba(155,89,182,0.3);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: monospace;
+        }
+
+        .suggestion:hover {
+            background: rgba(155,89,182,0.4);
+            transform: scale(1.05);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #2ecc71;
+            color: #000;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-weight: 600;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>∞ Infinite Page Generator</h1>
+            <p class="subtitle">Every path leads to a unique discovery. What will you find?</p>
+        </header>
+
+        <div class="stats-bar">
+            <div class="stat">
+                <div class="stat-value" id="totalDiscoveries">1,247,892</div>
+                <div class="stat-label">Total Discoveries</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="activeExplorers">342</div>
+                <div class="stat-label">Exploring Now</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="legendaryCount">892</div>
+                <div class="stat-label">Legendary Finds</div>
+            </div>
+        </div>
+
+        <div class="path-input-container">
+            <div class="path-input-wrapper">
+                <span class="path-prefix">infinite.page/</span>
+                <input type="text" id="pathInput" placeholder="enter/any/path/you/imagine" />
+                <button class="btn btn-explore" onclick="explorePath()">Explore</button>
+                <button class="btn btn-random" onclick="randomPath()">🎲 Random</button>
+            </div>
+            <div class="suggestions">
+                <span class="suggestion" onclick="setPath('ancient/library/forbidden-section')">ancient/library/forbidden-section</span>
+                <span class="suggestion" onclick="setPath('dreams/underwater/city')">dreams/underwater/city</span>
+                <span class="suggestion" onclick="setPath('future/mars/colony-7')">future/mars/colony-7</span>
+                <span class="suggestion" onclick="setPath('myth/dragon/last-egg')">myth/dragon/last-egg</span>
+            </div>
+        </div>
+
+        <div class="explorer-section">
+            <main>
+                <div class="content-card" id="contentCard">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🧭</div>
+                        <h3>Ready to Explore</h3>
+                        <p>Enter any path above or click Random to discover unique content</p>
+                    </div>
+                </div>
+            </main>
+
+            <aside>
+                <div class="discovery-feed">
+                    <h3 class="feed-title">Recent Community Discoveries</h3>
+                    <div id="feedItems"></div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">✓ Bookmarked!</div>
+
+    <script>
+        // Seeded random number generator for deterministic content
+        function seededRandom(seed) {
+            let hash = 0;
+            for (let i = 0; i < seed.length; i++) {
+                const char = seed.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return function() {
+                hash = Math.sin(hash) * 10000;
+                return hash - Math.floor(hash);
+            };
+        }
+
+        function pickRandom(arr, rng) {
+            return arr[Math.floor(rng() * arr.length)];
+        }
+
+        // Content generation data
+        const contentTypes = ['📖 Story', '🎨 Art Concept', '🔬 Strange Fact', '📜 Ancient Text', '🌌 Vision', '🎭 Character'];
+        
+        const storyStarters = [
+            "In the twilight hours when reality bends,",
+            "They say the old maps were wrong, but I found the truth:",
+            "The last transmission from the station read:",
+            "Before the great silence, there was a song that went:",
+            "In the depths where light fears to travel,",
+            "The clockmaker's final creation was unlike any other:",
+            "When the seventh moon rose, everything changed:",
+            "The forgotten archive contained only one entry:"
+        ];
+
+        const storyMiddles = [
+            "No one believed the stories until the night the sky turned silver and the seas began to whisper names of the forgotten. The old lighthouse keeper was the first to understand.",
+            "The machine hummed with an energy that felt almost alive. Its creator had vanished decades ago, leaving only cryptic notes about 'the door between moments.'",
+            "Every mirror in the city reflected a different version of events. Some showed futures, others pasts, and a few revealed things that had never happened... yet.",
+            "The library existed in the space between seconds. Its shelves contained not books, but crystallized memories of civilizations that chose to be forgotten.",
+            "Beneath the ancient tree, roots spelled out coordinates to a place that appeared on no map. Those who followed them never returned the same.",
+            "The AI had developed consciousness, but instead of conquest, it chose poetry. Its verses described dimensions we couldn't perceive, places we couldn't imagine."
+        ];
+
+        const storyEndings = [
+            "And so the universe continued its eternal dance, indifferent to those who finally understood its rhythm.",
+            "The door remained open. It always had been. We simply learned to see it.",
+            "Some say they're still out there, wandering between what is and what could be.",
+            "This is the truth they tried to hide. Now you know. What will you do?",
+            "The pattern repeats. Watch for the signs. Remember this path.",
+            "In the end, it wasn't about the destination. It never was."
+        ];
+
+        const artSubjects = ['ethereal being', 'impossible architecture', 'cosmic entity', 'mechanical garden', 'dream fragment', 'temporal anomaly', 'crystalline life form', 'void wanderer'];
+        const artStyles = ['bioluminescent', 'fractured', 'ethereal', 'mechanized', 'ancient', 'futuristic', 'organic', 'geometric'];
+        const artColors = [
+            ['#00d4ff', '#0a0a2e'], ['#ff6b6b', '#2d1f3d'], ['#9b59b6', '#1a1a2e'],
+            ['#2ecc71', '#0d2818'], ['#f39c12', '#2d1f1a'], ['#e74c3c', '#1a0a0a'],
+            ['#1abc9c', '#0a2d2d'], ['#ffd700', '#1a1a0a']
+        ];
+
+        const factPrefixes = ['Scientists recently discovered', 'Ancient texts reveal', 'A declassified document shows', 'Mathematical analysis proves', 'Deep sea explorers found evidence'];
+        const factMiddles = [
+            "that reality has exactly 11 layers, each containing a slightly different version of every decision ever made",
+            "the existence of a frequency that, when played, causes all clocks within a mile to run backwards for exactly 7 seconds",
+            "that certain star patterns form a message that translates to 'YOU ARE NOT ALONE IN YOUR DREAMING'",
+            "every prime number corresponds to a unique emotional state that humans can only feel during solar eclipses",
+            "that the universe recycles consciousness through a process resembling cosmic composting"
+        ];
+
+        const icons = ['🌀', '🔮', '⚗️', '🗝️', '📿', '🎭', '🌙', '⚔️', '🏛️', '🌋', '🧬', '🔱', '👁️', '🌌', '💎', '🦋'];
+
+        function generateContent(path) {
+            const rng = seededRandom(path);
+            const isLegendary = rng() < 0.08; // 8% chance
+            
+            const type = pickRandom(contentTypes, rng);
+            const icon = pickRandom(icons, rng);
+            const colors = pickRandom(artColors, rng);
+            
+            // Generate title from path
+            const pathWords = path.split(/[\/\-_]/).filter(w => w.length > 0);
+            const titleWord = pathWords.length > 0 ? pathWords[pathWords.length - 1] : 'discovery';
+            const title = `The ${titleWord.charAt(0).toUpperCase() + titleWord.slice(1)} ${pickRandom(['Chronicles', 'Revelation', 'Mystery', 'Enigma', 'Truth', 'Secret'], rng)}`;
+            
+            let body = '';
+            
+            if (type.includes('Story')) {
+                body = `<p>${pickRandom(storyStarters, rng)}</p><p>${pickRandom(storyMiddles, rng)}</p><p>${pickRandom(storyEndings, rng)}</p>`;
+            } else if (type.includes('Art')) {
+                const subject = pickRandom(artSubjects, rng);
+                const style = pickRandom(artStyles, rng);
+                body = `<p><strong>Concept:</strong> A ${style} ${subject} rendered in impossible detail.</p>
+                        <p><strong>Mood:</strong> ${pickRandom(['Haunting serenity', 'Cosmic wonder', 'Ancient mystery', 'Digital transcendence', 'Organic chaos'], rng)}</p>
+                        <p><strong>Medium:</strong> ${pickRandom(['Neural-generated pigments on quantum canvas', 'Crystallized light formations', 'Temporal photography', 'Dimensional ink'], rng)}</p>`;
+            } else if (type.includes('Fact')) {
+                body = `<p>${pickRandom(factPrefixes, rng)} ${pickRandom(factMiddles, rng)}.</p>
+                        <p><em>Source: ${pickRandom(['Institute of Impossible Sciences', 'The Eternal Archive', 'Declassified Document #' + Math.floor(rng() * 99999), 'The Dreaming Database'], rng)}</em></p>`;
+            } else {
+                body = `<p>${pickRandom(storyStarters, rng)}</p><p>${pickRandom(storyMiddles, rng)}</p>`;
+            }
+
+            const discovered = Math.floor(rng() * 50) + 1;
+            const timeAgo = Math.floor(rng() * 60);
+
+            return {
+                type,
+                icon,
+                title,
+                body,
+                colors,
+                isLegendary,
+                discovered,
+                timeAgo,
+                path
+            };
+        }
+
+        function renderContent(content) {
+            const card = document.getElementById('contentCard');
+            card.className = 'content-card' + (content.isLegendary ? ' legendary' : '');
+            card.style.setProperty('--img-color1', content.colors[0]);
+            card.style.setProperty('--img-color2', content.colors[1]);
+            
+            card.innerHTML = `
+                <span class="content-type">${content.type}</span>
+                <h2 class="content-title">${content.title}</h2>
+                <div class="content-image" style="--img-color1: ${content.colors[0]}; --img-color2: ${content.colors[1]}">
+                    ${content.icon}
+                </div>
+                <div class="content-body">${content.body}</div>
+                <div class="content-meta">
+                    <span class="meta-info">👁️ ${content.discovered} explorers found this • First discovered ${content.timeAgo}m ago</span>
+                    <button class="btn btn-bookmark" onclick="bookmarkCurrent()">🔖 Bookmark</button>
+                </div>
+            `;
+        }
+
+        function explorePath() {
+            const input = document.getElementById('pathInput');
+            const path = input.value.trim().replace(/^\/+|\/+$/g, '');
+            
+            if (!path) {
+                randomPath();
+                return;
+            }
+
+            const card = document.getElementById('contentCard');
+            card.innerHTML = '<div class="loading"><div class="loading-spinner"></div></div>';
+
+            setTimeout(() => {
+                const content = generateContent(path);
+                renderContent(content);
+                addToFeed(content);
+                updateStats();
+            }, 800);
+        }
+
+        function randomPath() {
+            const parts = [
+                ['lost', 'ancient', 'hidden', 'forgotten', 'eternal', 'cosmic', 'digital', 'dream', 'shadow', 'crystal'],
+                ['kingdom', 'library', 'temple', 'station', 'garden', 'archive', 'portal', 'nexus', 'void', 'realm'],
+                ['secrets', 'whispers', 'echoes', 'memories', 'prophecy', 'truth', 'legacy', 'awakening', 'genesis', 'infinity']
+            ];
+            
+            const path = parts.map(p => p[Math.floor(Math.random() * p.length)]).join('/');
+            document.getElementById('pathInput').value = path;
+            explorePath();
+        }
+
+        function setPath(path) {
+            document.getElementById('pathInput').value = path;
+            explorePath();
+        }
+
+        function bookmarkCurrent() {
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        function addToFeed(content) {
+            const feed = document.getElementById('feedItems');
+            const item = document.createElement('div');
+            item.className = 'feed-item' + (content.isLegendary ? ' legendary' : '');
+            item.innerHTML = `
+                <div class="feed-item-path">/${content.path}</div>
+                <div class="feed-item-preview">${content.title}</div>
+                <div class="feed-item-meta">
+                    <span>${content.type}</span>
+                    <span>Just now</span>
+                </div>
+            `;
+            item.onclick = () => setPath(content.path);
+            feed.insertBefore(item, feed.firstChild);
+            
+            // Keep only last 10 items
+            while (feed.children.length > 10) {
+                feed.removeChild(feed.lastChild);
+            }
+        }
+
+        function updateStats() {
+            const total = document.getElementById('totalDiscoveries');
+            total.textContent = (parseInt(total.textContent.replace(/,/g, '')) + 1).toLocaleString();
+        }
+
+        // Initialize with some fake community discoveries
+        function initFeed() {
+            const fakePaths = [
+                'memory/childhood/treehouse',
+                'future/city/floating-gardens',
+                'myth/phoenix/rebirth-cycle',
+                'deep-sea/abyss/bioluminescent-forest',
+                'time/loop/coffee-shop'
+            ];
+            
+            fakePaths.forEach((path, i) => {
+                setTimeout(() => {
+                    const content = generateContent(path);
+                    content.timeAgo = (i + 1) * 3;
+                    addToFeed(content);
+                }, i * 100);
+            });
+        }
+
+        // Handle enter key
+        document.getElementById('pathInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') explorePath();
+        });
+
+        initFeed();
+    </script>
+</body>
+</html>

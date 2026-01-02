@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { InputManager } from '../utils/InputManager';
+import { ModelLoader } from '../utils/ModelLoader';
 
 export enum VehicleType {
   CAR = 'car',
@@ -29,6 +30,9 @@ export class Vehicle {
   
   // Terrain
   protected getTerrainHeight: ((x: number, z: number) => number) | null = null;
+  
+  // Model loading
+  protected modelLoaded = false;
 
   constructor(scene: THREE.Scene, type: VehicleType, position: THREE.Vector3) {
     this.scene = scene;
@@ -71,6 +75,43 @@ export class Vehicle {
     }
     
     scene.add(this.mesh);
+    
+    // Load real 3D model async
+    this.loadModel();
+  }
+
+  private async loadModel(): Promise<void> {
+    try {
+      let modelName: 'car' | 'helicopter' | 'truck' = 'car';
+      let scale = 1;
+      
+      if (this.type === VehicleType.CAR) {
+        modelName = 'car';
+        scale = 1.5;
+      } else if (this.type === VehicleType.HELICOPTER) {
+        modelName = 'helicopter';
+        scale = 2;
+      } else {
+        modelName = 'truck';
+        scale = 1.5;
+      }
+      
+      const model = await ModelLoader.loadAndClone(modelName, scale);
+      
+      // Replace placeholder with real model
+      const pos = this.mesh.position.clone();
+      const rot = this.mesh.rotation.clone();
+      this.scene.remove(this.mesh);
+      
+      this.mesh = model;
+      this.mesh.position.copy(pos);
+      this.mesh.rotation.copy(rot);
+      
+      this.scene.add(this.mesh);
+      this.modelLoaded = true;
+    } catch (error) {
+      console.warn('Failed to load vehicle model, using fallback');
+    }
   }
 
   public setTerrainHeightFunction(fn: (x: number, z: number) => number): void {

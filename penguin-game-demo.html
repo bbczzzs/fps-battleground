@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐧 Penguin World - 3D Browser Game Demo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { overflow: hidden; font-family: 'Segoe UI', sans-serif; }
+        
+        #game-container { width: 100vw; height: 100vh; }
+        
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+        }
+        
+        .player-info {
+            background: rgba(255,255,255,0.95);
+            border-radius: 30px;
+            padding: 8px 15px 8px 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            margin-bottom: 10px;
+        }
+        
+        .avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            border: 3px solid #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .player-details h3 {
+            font-size: 1rem;
+            color: #2d3436;
+        }
+        
+        .level-bar {
+            width: 120px;
+            height: 8px;
+            background: #dfe6e9;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+        
+        .level-fill {
+            width: 65%;
+            height: 100%;
+            background: linear-gradient(90deg, #6c5ce7, #a29bfe);
+            border-radius: 4px;
+        }
+        
+        .currency {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .currency-item {
+            background: rgba(255,255,255,0.95);
+            border-radius: 25px;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: bold;
+            color: #2d3436;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .controls-hint {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: #fff;
+            padding: 15px 30px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        .controls-hint kbd {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 10px;
+            border-radius: 5px;
+            margin: 0 3px;
+        }
+        
+        .action-buttons {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .action-btn {
+            width: 55px;
+            height: 55px;
+            border-radius: 15px;
+            border: none;
+            background: rgba(255,255,255,0.95);
+            cursor: pointer;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        
+        .action-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .location-badge {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,255,255,0.95);
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-weight: bold;
+            color: #2d3436;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        #loading {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #74b9ff, #a29bfe);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: opacity 0.5s;
+        }
+        
+        #loading.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .loading-penguin {
+            font-size: 5rem;
+            animation: bounce 0.6s infinite alternate;
+        }
+        
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-20px); }
+        }
+        
+        .loading-text {
+            color: #fff;
+            font-size: 1.5rem;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">
+        <div class="loading-penguin">🐧</div>
+        <div class="loading-text">Loading Penguin World...</div>
+    </div>
+
+    <div id="game-container"></div>
+    
+    <div id="ui">
+        <div class="player-info">
+            <div class="avatar">🐧</div>
+            <div class="player-details">
+                <h3>Ishan</h3>
+                <div class="level-bar">
+                    <div class="level-fill"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="currency">
+        <div class="currency-item">🪙 1,250</div>
+        <div class="currency-item">💎 85</div>
+    </div>
+    
+    <div class="location-badge">❄️ Snow Village</div>
+    
+    <div class="controls-hint">
+        <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move &nbsp;|&nbsp; 
+        <kbd>SPACE</kbd> Jump &nbsp;|&nbsp;
+        <kbd>Mouse</kbd> Look Around
+    </div>
+    
+    <div class="action-buttons">
+        <button class="action-btn">💬</button>
+        <button class="action-btn">🎒</button>
+        <button class="action-btn">🗺️</button>
+        <button class="action-btn">⚙️</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // ============ SCENE SETUP ============
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x87CEEB);
+        scene.fog = new THREE.Fog(0x87CEEB, 50, 200);
+        
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document.getElementById('game-container').appendChild(renderer.domElement);
+
+        // ============ TOON MATERIALS ============
+        // This is how you get that cartoon look!
+        function createToonMaterial(color) {
+            const material = new THREE.MeshToonMaterial({ 
+                color: color,
+            });
+            return material;
+        }
+
+        // ============ LIGHTING ============
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        
+        const sunLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        sunLight.position.set(50, 100, 50);
+        sunLight.castShadow = true;
+        sunLight.shadow.mapSize.width = 2048;
+        sunLight.shadow.mapSize.height = 2048;
+        sunLight.shadow.camera.near = 0.5;
+        sunLight.shadow.camera.far = 500;
+        sunLight.shadow.camera.left = -100;
+        sunLight.shadow.camera.right = 100;
+        sunLight.shadow.camera.top = 100;
+        sunLight.shadow.camera.bottom = -100;
+        scene.add(sunLight);
+
+        // ============ GROUND (SNOW) ============
+        const groundGeometry = new THREE.CircleGeometry(150, 64);
+        const groundMaterial = createToonMaterial(0xF0F8FF);
+        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.rotation.x = -Math.PI / 2;
+        ground.receiveShadow = true;
+        scene.add(ground);
+
+        // ============ PENGUIN CHARACTER ============
+        const penguin = new THREE.Group();
+        
+        // Body (black)
+        const bodyGeometry = new THREE.SphereGeometry(0.8, 32, 32);
+        bodyGeometry.scale(1, 1.2, 0.9);
+        const bodyMaterial = createToonMaterial(0x1a1a2e);
+        const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+        body.position.y = 1;
+        body.castShadow = true;
+        penguin.add(body);
+        
+        // Belly (white)
+        const bellyGeometry = new THREE.SphereGeometry(0.55, 32, 32);
+        bellyGeometry.scale(1, 1.2, 0.5);
+        const bellyMaterial = createToonMaterial(0xffffff);
+        const belly = new THREE.Mesh(bellyGeometry, bellyMaterial);
+        belly.position.set(0, 1, 0.35);
+        penguin.add(belly);
+        
+        // Head
+        const headGeometry = new THREE.SphereGeometry(0.5, 32, 32);
+        const headMaterial = createToonMaterial(0x1a1a2e);
+        const head = new THREE.Mesh(headGeometry, headMaterial);
+        head.position.y = 2.1;
+        head.castShadow = true;
+        penguin.add(head);
+        
+        // Face (white)
+        const faceGeometry = new THREE.SphereGeometry(0.35, 32, 32);
+        faceGeometry.scale(1, 1, 0.5);
+        const faceMaterial = createToonMaterial(0xffffff);
+        const face = new THREE.Mesh(faceGeometry, faceMaterial);
+        face.position.set(0, 2.1, 0.25);
+        penguin.add(face);
+        
+        // Eyes
+        const eyeGeometry = new THREE.SphereGeometry(0.08, 16, 16);
+        const eyeMaterial = createToonMaterial(0x000000);
+        const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+        leftEye.position.set(-0.15, 2.2, 0.45);
+        penguin.add(leftEye);
+        
+        const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+        rightEye.position.set(0.15, 2.2, 0.45);
+        penguin.add(rightEye);
+        
+        // Beak
+        const beakGeometry = new THREE.ConeGeometry(0.12, 0.25, 32);
+        const beakMaterial = createToonMaterial(0xFFA500);
+        const beak = new THREE.Mesh(beakGeometry, beakMaterial);
+        beak.rotation.x = Math.PI / 2;
+        beak.position.set(0, 2.05, 0.55);
+        penguin.add(beak);
+        
+        // Feet
+        const footGeometry = new THREE.BoxGeometry(0.35, 0.1, 0.5);
+        const footMaterial = createToonMaterial(0xFFA500);
+        const leftFoot = new THREE.Mesh(footGeometry, footMaterial);
+        leftFoot.position.set(-0.25, 0.05, 0.1);
+        leftFoot.castShadow = true;
+        penguin.add(leftFoot);
+        
+        const rightFoot = new THREE.Mesh(footGeometry, footMaterial);
+        rightFoot.position.set(0.25, 0.05, 0.1);
+        rightFoot.castShadow = true;
+        penguin.add(rightFoot);
+        
+        // Hat (cute accessory)
+        const hatBaseGeometry = new THREE.CylinderGeometry(0.4, 0.45, 0.15, 32);
+        const hatMaterial = createToonMaterial(0xd35400);
+        const hatBase = new THREE.Mesh(hatBaseGeometry, hatMaterial);
+        hatBase.position.y = 2.55;
+        penguin.add(hatBase);
+        
+        const hatTopGeometry = new THREE.CylinderGeometry(0.25, 0.35, 0.35, 32);
+        const hatTop = new THREE.Mesh(hatTopGeometry, hatMaterial);
+        hatTop.position.y = 2.75;
+        penguin.add(hatTop);
+        
+        penguin.position.set(0, 0, 0);
+        scene.add(penguin);
+
+        // ============ ENVIRONMENT - TREES ============
+        function createTree(x, z, scale = 1) {
+            const tree = new THREE.Group();
+            
+            // Trunk
+            const trunkGeometry = new THREE.CylinderGeometry(0.2 * scale, 0.3 * scale, 1.5 * scale, 8);
+            const trunkMaterial = createToonMaterial(0x5D4037);
+            const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+            trunk.position.y = 0.75 * scale;
+            trunk.castShadow = true;
+            tree.add(trunk);
+            
+            // Foliage layers (snowy green)
+            const colors = [0x2E7D32, 0x388E3C, 0x43A047];
+            for (let i = 0; i < 3; i++) {
+                const foliageGeometry = new THREE.ConeGeometry((1.2 - i * 0.3) * scale, 1.5 * scale, 8);
+                const foliageMaterial = createToonMaterial(colors[i]);
+                const foliage = new THREE.Mesh(foliageGeometry, foliageMaterial);
+                foliage.position.y = (2 + i * 0.9) * scale;
+                foliage.castShadow = true;
+                tree.add(foliage);
+                
+                // Snow on top
+                const snowGeometry = new THREE.ConeGeometry((1.1 - i * 0.3) * scale, 0.3 * scale, 8);
+                const snowMaterial = createToonMaterial(0xFFFFFF);
+                const snow = new THREE.Mesh(snowGeometry, snowMaterial);
+                snow.position.y = (2.6 + i * 0.9) * scale;
+                tree.add(snow);
+            }
+            
+            tree.position.set(x, 0, z);
+            return tree;
+        }
+        
+        // Add trees around the scene
+        const treePositions = [
+            [-15, -10, 1.2], [-20, -5, 0.9], [-18, 5, 1.1], [-12, 10, 1.0],
+            [-25, 0, 1.3], [-22, -12, 0.8], [-28, 8, 1.0], [-10, -15, 1.1],
+            [15, 15, 1.0], [20, 10, 1.2], [18, 20, 0.9], [25, 5, 1.1],
+            [-8, -20, 1.0], [-15, -18, 0.9], [10, -18, 1.1], [5, -22, 1.0]
+        ];
+        
+        treePositions.forEach(([x, z, scale]) => {
+            scene.add(createTree(x, z, scale));
+        });
+
+        // ============ BUILDINGS ============
+        function createBuilding(x, z, width, height, depth, roofColor, wallColor) {
+            const building = new THREE.Group();
+            
+            // Walls
+            const wallGeometry = new THREE.BoxGeometry(width, height, depth);
+            const wallMaterial = createToonMaterial(wallColor);
+            const walls = new THREE.Mesh(wallGeometry, wallMaterial);
+            walls.position.y = height / 2;
+            walls.castShadow = true;
+            walls.receiveShadow = true;
+            building.add(walls);
+            
+            // Roof
+            const roofGeometry = new THREE.ConeGeometry(Math.max(width, depth) * 0.8, height * 0.5, 4);
+            const roofMaterial = createToonMaterial(roofColor);
+            const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+            roof.position.y = height + height * 0.2;
+            roof.rotation.y = Math.PI / 4;
+            roof.castShadow = true;
+            building.add(roof);
+            
+            // Snow on roof
+            const snowRoofGeometry = new THREE.ConeGeometry(Math.max(width, depth) * 0.75, height * 0.15, 4);
+            const snowMaterial = createToonMaterial(0xFFFFFF);
+            const snowRoof = new THREE.Mesh(snowRoofGeometry, snowMaterial);
+            snowRoof.position.y = height + height * 0.4;
+            snowRoof.rotation.y = Math.PI / 4;
+            building.add(snowRoof);
+            
+            // Door
+            const doorGeometry = new THREE.BoxGeometry(width * 0.3, height * 0.5, 0.1);
+            const doorMaterial = createToonMaterial(0x5D4037);
+            const door = new THREE.Mesh(doorGeometry, doorMaterial);
+            door.position.set(0, height * 0.25, depth / 2 + 0.05);
+            building.add(door);
+            
+            // Windows
+            const windowGeometry = new THREE.BoxGeometry(width * 0.2, height * 0.2, 0.1);
+            const windowMaterial = createToonMaterial(0x81D4FA);
+            
+            const window1 = new THREE.Mesh(windowGeometry, windowMaterial);
+            window1.position.set(-width * 0.25, height * 0.6, depth / 2 + 0.05);
+            building.add(window1);
+            
+            const window2 = new THREE.Mesh(windowGeometry, windowMaterial);
+            window2.position.set(width * 0.25, height * 0.6, depth / 2 + 0.05);
+            building.add(window2);
+            
+            building.position.set(x, 0, z);
+            return building;
+        }
+        
+        // Add buildings
+        scene.add(createBuilding(12, 0, 6, 5, 5, 0xE53935, 0xFFE0B2));
+        scene.add(createBuilding(-5, 12, 5, 4, 4, 0x1E88E5, 0xE1BEE7));
+        scene.add(createBuilding(8, -12, 7, 6, 6, 0x43A047, 0xFFF9C4));
+
+        // ============ LAMP POSTS ============
+        function createLampPost(x, z) {
+            const lamp = new THREE.Group();
+            
+            // Pole
+            const poleGeometry = new THREE.CylinderGeometry(0.1, 0.15, 4, 8);
+            const poleMaterial = createToonMaterial(0xE53935);
+            const pole = new THREE.Mesh(poleGeometry, poleMaterial);
+            pole.position.y = 2;
+            pole.castShadow = true;
+            lamp.add(pole);
+            
+            // Lamp head
+            const lampHeadGeometry = new THREE.BoxGeometry(0.6, 0.8, 0.6);
+            const lampHeadMaterial = createToonMaterial(0xFFF176);
+            const lampHead = new THREE.Mesh(lampHeadGeometry, lampHeadMaterial);
+            lampHead.position.y = 4.2;
+            lamp.add(lampHead);
+            
+            // Lamp roof
+            const lampRoofGeometry = new THREE.ConeGeometry(0.5, 0.4, 4);
+            const lampRoofMaterial = createToonMaterial(0xE53935);
+            const lampRoof = new THREE.Mesh(lampRoofGeometry, lampRoofMaterial);
+            lampRoof.position.y = 4.8;
+            lampRoof.rotation.y = Math.PI / 4;
+            lamp.add(lampRoof);
+            
+            // Point light
+            const light = new THREE.PointLight(0xFFE082, 0.5, 10);
+            light.position.y = 4.2;
+            lamp.add(light);
+            
+            lamp.position.set(x, 0, z);
+            return lamp;
+        }
+        
+        scene.add(createLampPost(5, 5));
+        scene.add(createLampPost(-5, -5));
+        scene.add(createLampPost(5, -8));
+        scene.add(createLampPost(-8, 5));
+
+        // ============ SNOWMAN ============
+        function createSnowman(x, z) {
+            const snowman = new THREE.Group();
+            
+            const bottomGeometry = new THREE.SphereGeometry(0.8, 32, 32);
+            const snowMaterial = createToonMaterial(0xFFFFFF);
+            const bottom = new THREE.Mesh(bottomGeometry, snowMaterial);
+            bottom.position.y = 0.8;
+            bottom.castShadow = true;
+            snowman.add(bottom);
+            
+            const middleGeometry = new THREE.SphereGeometry(0.6, 32, 32);
+            const middle = new THREE.Mesh(middleGeometry, snowMaterial);
+            middle.position.y = 1.9;
+            middle.castShadow = true;
+            snowman.add(middle);
+            
+            const headGeometry = new THREE.SphereGeometry(0.4, 32, 32);
+            const head = new THREE.Mesh(headGeometry, snowMaterial);
+            head.position.y = 2.7;
+            head.castShadow = true;
+            snowman.add(head);
+            
+            // Carrot nose
+            const noseGeometry = new THREE.ConeGeometry(0.08, 0.3, 8);
+            const noseMaterial = createToonMaterial(0xFFA500);
+            const nose = new THREE.Mesh(noseGeometry, noseMaterial);
+            nose.rotation.x = Math.PI / 2;
+            nose.position.set(0, 2.7, 0.4);
+            snowman.add(nose);
+            
+            // Hat
+            const hatBrimGeometry = new THREE.CylinderGeometry(0.5, 0.5, 0.1, 32);
+            const hatMaterial = createToonMaterial(0x1a1a2e);
+            const hatBrim = new THREE.Mesh(hatBrimGeometry, hatMaterial);
+            hatBrim.position.y = 3.1;
+            snowman.add(hatBrim);
+            
+            const hatTopGeometry = new THREE.CylinderGeometry(0.3, 0.35, 0.5, 32);
+            const hatTop = new THREE.Mesh(hatTopGeometry, hatMaterial);
+            hatTop.position.y = 3.35;
+            snowman.add(hatTop);
+            
+            snowman.position.set(x, 0, z);
+            return snowman;
+        }
+        
+        scene.add(createSnowman(-10, 0));
+        scene.add(createSnowman(3, 8));
+
+        // ============ PLAYER CONTROLS ============
+        const keys = { w: false, a: false, s: false, d: false, space: false };
+        let velocityY = 0;
+        let isJumping = false;
+        const speed = 0.15;
+        const jumpForce = 0.3;
+        const gravity = 0.015;
+        
+        // Camera settings
+        let cameraDistance = 8;
+        let cameraHeight = 4;
+        let cameraAngle = 0;
+        let targetCameraAngle = 0;
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() in keys) keys[e.key.toLowerCase()] = true;
+            if (e.code === 'Space') { keys.space = true; e.preventDefault(); }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            if (e.key.toLowerCase() in keys) keys[e.key.toLowerCase()] = false;
+            if (e.code === 'Space') keys.space = false;
+        });
+        
+        // Mouse look
+        let isMouseDown = false;
+        let lastMouseX = 0;
+        
+        renderer.domElement.addEventListener('mousedown', (e) => {
+            isMouseDown = true;
+            lastMouseX = e.clientX;
+        });
+        
+        document.addEventListener('mouseup', () => {
+            isMouseDown = false;
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+            if (isMouseDown) {
+                const deltaX = e.clientX - lastMouseX;
+                targetCameraAngle -= deltaX * 0.01;
+                lastMouseX = e.clientX;
+            }
+        });
+        
+        // Touch controls
+        renderer.domElement.addEventListener('touchstart', (e) => {
+            isMouseDown = true;
+            lastMouseX = e.touches[0].clientX;
+        });
+        
+        renderer.domElement.addEventListener('touchmove', (e) => {
+            if (isMouseDown) {
+                const deltaX = e.touches[0].clientX - lastMouseX;
+                targetCameraAngle -= deltaX * 0.01;
+                lastMouseX = e.touches[0].clientX;
+            }
+        });
+        
+        renderer.domElement.addEventListener('touchend', () => {
+            isMouseDown = false;
+        });
+
+        // ============ ANIMATION LOOP ============
+        let walkCycle = 0;
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Smooth camera rotation
+            cameraAngle += (targetCameraAngle - cameraAngle) * 0.1;
+            
+            // Movement
+            let moveX = 0;
+            let moveZ = 0;
+            
+            if (keys.w) moveZ -= 1;
+            if (keys.s) moveZ += 1;
+            if (keys.a) moveX -= 1;
+            if (keys.d) moveX += 1;
+            
+            if (moveX !== 0 || moveZ !== 0) {
+                // Rotate movement by camera angle
+                const angle = cameraAngle;
+                const rotatedX = moveX * Math.cos(angle) - moveZ * Math.sin(angle);
+                const rotatedZ = moveX * Math.sin(angle) + moveZ * Math.cos(angle);
+                
+                penguin.position.x += rotatedX * speed;
+                penguin.position.z += rotatedZ * speed;
+                
+                // Face movement direction
+                penguin.rotation.y = Math.atan2(rotatedX, rotatedZ);
+                
+                // Walk animation
+                walkCycle += 0.2;
+                penguin.children.forEach((child, i) => {
+                    if (i >= 6 && i <= 7) { // Feet
+                        child.position.y = 0.05 + Math.sin(walkCycle + i * Math.PI) * 0.1;
+                        child.position.z = 0.1 + Math.cos(walkCycle + i * Math.PI) * 0.15;
+                    }
+                });
+            }
+            
+            // Jumping
+            if (keys.space && !isJumping) {
+                velocityY = jumpForce;
+                isJumping = true;
+            }
+            
+            penguin.position.y += velocityY;
+            velocityY -= gravity;
+            
+            if (penguin.position.y <= 0) {
+                penguin.position.y = 0;
+                velocityY = 0;
+                isJumping = false;
+            }
+            
+            // Boundary
+            const boundary = 40;
+            penguin.position.x = Math.max(-boundary, Math.min(boundary, penguin.position.x));
+            penguin.position.z = Math.max(-boundary, Math.min(boundary, penguin.position.z));
+            
+            // Camera follow
+            camera.position.x = penguin.position.x + Math.sin(cameraAngle) * cameraDistance;
+            camera.position.z = penguin.position.z + Math.cos(cameraAngle) * cameraDistance;
+            camera.position.y = penguin.position.y + cameraHeight;
+            camera.lookAt(penguin.position.x, penguin.position.y + 1.5, penguin.position.z);
+            
+            renderer.render(scene, camera);
+        }
+        
+        // ============ RESIZE HANDLER ============
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        // ============ START ============
+        setTimeout(() => {
+            document.getElementById('loading').classList.add('hidden');
+        }, 1500);
+        
+        animate();
+    </script>
+</body>
+</html>

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { ModelLoader } from '../utils/ModelLoader';
 
 export class Terrain {
   private scene: THREE.Scene;
@@ -348,6 +349,10 @@ export class Terrain {
   }
   
   private createTree(x: number, z: number): void {
+    // Load 3D tree model async
+    this.loadTreeModel(x, z);
+    
+    // Show placeholder immediately
     const group = new THREE.Group();
     const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.4, 4, 6), new THREE.MeshStandardMaterial({ color: 0x4a3728, roughness: 0.9 }));
     trunk.position.y = 2;
@@ -361,7 +366,25 @@ export class Terrain {
     
     group.position.set(x, this.getHeightAt(x, z), z);
     group.scale.setScalar(0.7 + Math.random() * 0.6);
+    group.name = `tree_${x}_${z}`;
     this.scene.add(group);
+  }
+
+  private async loadTreeModel(x: number, z: number): Promise<void> {
+    try {
+      const scale = 0.8 + Math.random() * 0.5;
+      const tree = await ModelLoader.loadAndClone('tree', scale);
+      
+      // Remove placeholder
+      const placeholder = this.scene.getObjectByName(`tree_${x}_${z}`);
+      if (placeholder) this.scene.remove(placeholder);
+      
+      tree.position.set(x, this.getHeightAt(x, z), z);
+      tree.rotation.y = Math.random() * Math.PI * 2;
+      this.scene.add(tree);
+    } catch {
+      // Keep placeholder on error
+    }
   }
 
   private createLake(): void {

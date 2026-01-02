@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎹 Virtual Harmonium</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f1a 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        h1 {
+            color: #d4a574;
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .instructions {
+            color: #888;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .instructions span {
+            color: #d4a574;
+        }
+
+        .harmonium-container {
+            perspective: 1000px;
+        }
+
+        .harmonium {
+            background: linear-gradient(180deg, #5c3d2e 0%, #4a3228 50%, #3d2820 100%);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 
+                0 20px 60px rgba(0,0,0,0.5),
+                inset 0 2px 0 rgba(255,255,255,0.1),
+                inset 0 -5px 20px rgba(0,0,0,0.3);
+            border: 3px solid #6b4423;
+            position: relative;
+        }
+
+        /* Wood grain texture */
+        .harmonium::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 2px,
+                rgba(0,0,0,0.03) 2px,
+                rgba(0,0,0,0.03) 4px
+            );
+            border-radius: 12px;
+            pointer-events: none;
+        }
+
+        /* Decorative top panel */
+        .top-panel {
+            background: linear-gradient(180deg, #4a3228, #3d2820);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid #5c3d2e;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .brand {
+            color: #d4a574;
+            font-size: 1.2rem;
+            font-style: italic;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .air-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .air-label {
+            color: #888;
+            font-size: 0.8rem;
+        }
+
+        .air-meter {
+            width: 120px;
+            height: 20px;
+            background: #2a1a12;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid #5c3d2e;
+        }
+
+        .air-level {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #e74c3c, #f39c12, #2ecc71);
+            transition: width 0.1s;
+            border-radius: 8px;
+        }
+
+        .air-level.low {
+            background: linear-gradient(90deg, #e74c3c, #c0392b);
+        }
+
+        /* Keyboard section */
+        .keyboard-section {
+            background: #2a1a12;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 2px solid #3d2820;
+        }
+
+        .keys-container {
+            display: flex;
+            justify-content: center;
+            position: relative;
+            height: 160px;
+        }
+
+        .white-keys {
+            display: flex;
+            gap: 3px;
+        }
+
+        .white-key {
+            width: 45px;
+            height: 150px;
+            background: linear-gradient(180deg, #fefefe 0%, #e8e8e8 80%, #d0d0d0 100%);
+            border-radius: 0 0 6px 6px;
+            cursor: pointer;
+            position: relative;
+            box-shadow: 
+                0 5px 10px rgba(0,0,0,0.3),
+                inset 0 -5px 10px rgba(0,0,0,0.1);
+            transition: all 0.05s;
+            border: 1px solid #ccc;
+        }
+
+        .white-key:hover {
+            background: linear-gradient(180deg, #fff 0%, #f5f5f5 80%, #e0e0e0 100%);
+        }
+
+        .white-key:active, .white-key.active {
+            background: linear-gradient(180deg, #e0e0e0 0%, #d0d0d0 80%, #c0c0c0 100%);
+            transform: translateY(3px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .white-key .key-label {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.75rem;
+            color: #666;
+            font-weight: bold;
+        }
+
+        .white-key .note-label {
+            position: absolute;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.65rem;
+            color: #999;
+        }
+
+        .black-keys {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .black-key-slot {
+            width: 48px;
+            height: 100px;
+            position: relative;
+        }
+
+        .black-key {
+            width: 30px;
+            height: 95px;
+            background: linear-gradient(180deg, #333 0%, #1a1a1a 70%, #000 100%);
+            border-radius: 0 0 4px 4px;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            cursor: pointer;
+            pointer-events: auto;
+            box-shadow: 
+                0 5px 10px rgba(0,0,0,0.5),
+                inset 0 -3px 5px rgba(255,255,255,0.1);
+            z-index: 10;
+            transition: all 0.05s;
+        }
+
+        .black-key:hover {
+            background: linear-gradient(180deg, #444 0%, #222 70%, #111 100%);
+        }
+
+        .black-key:active, .black-key.active {
+            background: linear-gradient(180deg, #222 0%, #111 70%, #000 100%);
+            transform: translateX(-50%) translateY(3px);
+            height: 92px;
+        }
+
+        .black-key .key-label {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.65rem;
+            color: #888;
+            font-weight: bold;
+        }
+
+        .black-key-slot.empty {
+            pointer-events: none;
+        }
+
+        /* Bellows section */
+        .bellows-section {
+            display: flex;
+            gap: 15px;
+            align-items: stretch;
+        }
+
+        .bellows {
+            flex: 1;
+            height: 100px;
+            background: linear-gradient(180deg, #8b0000, #5c0000);
+            border-radius: 10px;
+            cursor: grab;
+            position: relative;
+            overflow: hidden;
+            border: 3px solid #3d2820;
+            box-shadow: 
+                inset 0 5px 15px rgba(0,0,0,0.3),
+                0 5px 15px rgba(0,0,0,0.3);
+            transition: transform 0.1s;
+        }
+
+        .bellows:active {
+            cursor: grabbing;
+        }
+
+        .bellows.compressed {
+            transform: scaleX(0.85);
+        }
+
+        /* Bellows folds */
+        .bellows-folds {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+        }
+
+        .fold {
+            height: 2px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(0,0,0,0.4) 20%, 
+                rgba(0,0,0,0.4) 80%, 
+                transparent 100%
+            );
+        }
+
+        .bellows-handle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #3d2820;
+            padding: 10px 30px;
+            border-radius: 8px;
+            color: #d4a574;
+            font-weight: bold;
+            font-size: 0.9rem;
+            border: 2px solid #5c3d2e;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+            pointer-events: none;
+        }
+
+        .bellows-instruction {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.5);
+            white-space: nowrap;
+        }
+
+        /* Stops/Drone controls */
+        .stops-section {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+
+        .stop-knob {
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(circle at 30% 30%, #d4a574, #8b6914);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            color: #3d2820;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 
+                0 4px 8px rgba(0,0,0,0.3),
+                inset 0 2px 4px rgba(255,255,255,0.3);
+            transition: all 0.2s;
+            border: 2px solid #5c3d2e;
+        }
+
+        .stop-knob:hover {
+            transform: scale(1.1);
+        }
+
+        .stop-knob.active {
+            background: radial-gradient(circle at 30% 30%, #2ecc71, #27ae60);
+            box-shadow: 
+                0 4px 8px rgba(0,0,0,0.3),
+                0 0 15px rgba(46, 204, 113, 0.5);
+        }
+
+        .drone-note {
+            display: none;
+            margin-top: 10px;
+            text-align: center;
+            color: #888;
+            font-size: 0.8rem;
+        }
+
+        /* Scale selector */
+        .scale-selector {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .scale-btn {
+            padding: 8px 16px;
+            background: #3d2820;
+            border: 2px solid #5c3d2e;
+            border-radius: 20px;
+            color: #d4a574;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .scale-btn:hover {
+            background: #5c3d2e;
+        }
+
+        .scale-btn.active {
+            background: #d4a574;
+            color: #3d2820;
+        }
+
+        /* No air warning */
+        .no-air-warning {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #e74c3c;
+            color: #fff;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 100;
+        }
+
+        .no-air-warning.show {
+            opacity: 1;
+        }
+
+        @media (max-width: 700px) {
+            .white-key {
+                width: 35px;
+                height: 120px;
+            }
+            .black-key {
+                width: 24px;
+                height: 75px;
+            }
+            .black-key-slot {
+                width: 38px;
+            }
+            .keys-container {
+                height: 130px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>🎹 Virtual Harmonium</h1>
+    <p class="instructions">
+        <span>Pump the bellows</span> to fill air, then play the keys!<br>
+        Keyboard: <span>A S D F G H J K L</span> (white) | <span>W E T Y U</span> (black)
+    </p>
+
+    <div class="no-air-warning" id="noAirWarning">⚠️ Pump the bellows for air!</div>
+
+    <div class="harmonium-container">
+        <div class="harmonium">
+            <!-- Top decorative panel -->
+            <div class="top-panel">
+                <div class="brand">♪ Sangeet Harmonium</div>
+                <div class="air-indicator">
+                    <span class="air-label">Air</span>
+                    <div class="air-meter">
+                        <div class="air-level" id="airLevel"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Keyboard -->
+            <div class="keyboard-section">
+                <div class="keys-container">
+                    <div class="white-keys" id="whiteKeys"></div>
+                    <div class="black-keys" id="blackKeys"></div>
+                </div>
+            </div>
+
+            <!-- Bellows -->
+            <div class="bellows-section">
+                <div class="bellows" id="bellows">
+                    <div class="bellows-folds">
+                        <div class="fold"></div>
+                        <div class="fold"></div>
+                        <div class="fold"></div>
+                        <div class="fold"></div>
+                        <div class="fold"></div>
+                        <div class="fold"></div>
+                        <div class="fold"></div>
+                    </div>
+                    <div class="bellows-handle">◀ PUSH ▶</div>
+                    <div class="bellows-instruction">Click & drag or hold SPACE</div>
+                </div>
+            </div>
+
+            <!-- Stops/Drones -->
+            <div class="stops-section">
+                <div class="stop-knob" data-drone="Sa" onclick="toggleDrone('C3')">
+                    Sa<br>Drone
+                </div>
+                <div class="stop-knob" data-drone="Pa" onclick="toggleDrone('G3')">
+                    Pa<br>Drone
+                </div>
+                <div class="stop-knob" data-octave="low" onclick="toggleOctave('low')">
+                    Low<br>Oct
+                </div>
+                <div class="stop-knob" data-octave="high" onclick="toggleOctave('high')">
+                    High<br>Oct
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="scale-selector">
+        <button class="scale-btn active" onclick="setScale('C')">C (Sa)</button>
+        <button class="scale-btn" onclick="setScale('D')">D</button>
+        <button class="scale-btn" onclick="setScale('E')">E</button>
+        <button class="scale-btn" onclick="setScale('F')">F</button>
+        <button class="scale-btn" onclick="setScale('G')">G (Pa)</button>
+        <button class="scale-btn" onclick="setScale('A')">A</button>
+    </div>
+
+    <script>
+        // Audio Context
+        let audioCtx = null;
+        const activeOscillators = {};
+        const activeDrones = {};
+        let airLevel = 0;
+        let isPumping = false;
+        let lowOctave = false;
+        let highOctave = false;
+        let baseFreq = 261.63; // C4
+
+        // Note frequencies (C4 = middle C)
+        const noteFrequencies = {
+            'C': 261.63, 'C#': 277.18, 'D': 293.66, 'D#': 311.13,
+            'E': 329.63, 'F': 349.23, 'F#': 369.99, 'G': 392.00,
+            'G#': 415.30, 'A': 440.00, 'A#': 466.16, 'B': 493.88
+        };
+
+        // Key mappings
+        const whiteKeyMap = ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'];
+        const blackKeyMap = ['W', 'E', null, 'T', 'Y', 'U', null];
+        const whiteNotes = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C2', 'D2'];
+        const blackNotes = ['C#', 'D#', null, 'F#', 'G#', 'A#', null];
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function createHarmoniumSound(frequency) {
+            initAudio();
+            
+            const masterGain = audioCtx.createGain();
+            masterGain.connect(audioCtx.destination);
+            
+            // Harmonium has a rich, reedy sound - use multiple oscillators
+            const oscillators = [];
+            
+            // Fundamental
+            const osc1 = audioCtx.createOscillator();
+            osc1.type = 'sawtooth';
+            osc1.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+            
+            // First harmonic (octave up, quieter)
+            const osc2 = audioCtx.createOscillator();
+            osc2.type = 'triangle';
+            osc2.frequency.setValueAtTime(frequency * 2, audioCtx.currentTime);
+            
+            // Sub oscillator for body
+            const osc3 = audioCtx.createOscillator();
+            osc3.type = 'sine';
+            osc3.frequency.setValueAtTime(frequency * 0.5, audioCtx.currentTime);
+
+            // Individual gains
+            const gain1 = audioCtx.createGain();
+            const gain2 = audioCtx.createGain();
+            const gain3 = audioCtx.createGain();
+            
+            gain1.gain.setValueAtTime(0.15 * (airLevel / 100), audioCtx.currentTime);
+            gain2.gain.setValueAtTime(0.08 * (airLevel / 100), audioCtx.currentTime);
+            gain3.gain.setValueAtTime(0.05 * (airLevel / 100), audioCtx.currentTime);
+
+            osc1.connect(gain1);
+            osc2.connect(gain2);
+            osc3.connect(gain3);
+            
+            gain1.connect(masterGain);
+            gain2.connect(masterGain);
+            gain3.connect(masterGain);
+
+            // Add slight vibrato for realism
+            const vibrato = audioCtx.createOscillator();
+            const vibratoGain = audioCtx.createGain();
+            vibrato.frequency.setValueAtTime(5, audioCtx.currentTime);
+            vibratoGain.gain.setValueAtTime(2, audioCtx.currentTime);
+            vibrato.connect(vibratoGain);
+            vibratoGain.connect(osc1.frequency);
+            vibratoGain.connect(osc2.frequency);
+
+            osc1.start();
+            osc2.start();
+            osc3.start();
+            vibrato.start();
+
+            return {
+                oscillators: [osc1, osc2, osc3, vibrato],
+                gains: [gain1, gain2, gain3],
+                masterGain,
+                stop: function() {
+                    const now = audioCtx.currentTime;
+                    masterGain.gain.setValueAtTime(masterGain.gain.value, now);
+                    masterGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                    setTimeout(() => {
+                        this.oscillators.forEach(o => o.stop());
+                    }, 150);
+                }
+            };
+        }
+
+        function getFrequencyForNote(note, octaveOffset = 0) {
+            const baseNote = note.replace('2', '');
+            let freq = noteFrequencies[baseNote] || 261.63;
+            
+            // Adjust for scale
+            const scaleRatio = baseFreq / 261.63;
+            freq *= scaleRatio;
+            
+            // Octave adjustments
+            if (note.includes('2')) freq *= 2;
+            if (octaveOffset !== 0) freq *= Math.pow(2, octaveOffset);
+            
+            return freq;
+        }
+
+        function playNote(note, keyElement) {
+            if (airLevel < 5) {
+                showNoAirWarning();
+                return;
+            }
+
+            initAudio();
+            
+            if (activeOscillators[note]) {
+                return; // Already playing
+            }
+
+            const freq = getFrequencyForNote(note);
+            const sounds = [];
+            
+            // Main note
+            sounds.push(createHarmoniumSound(freq));
+            
+            // Octave coupling if enabled
+            if (lowOctave) {
+                sounds.push(createHarmoniumSound(freq / 2));
+            }
+            if (highOctave) {
+                sounds.push(createHarmoniumSound(freq * 2));
+            }
+
+            activeOscillators[note] = sounds;
+            keyElement.classList.add('active');
+        }
+
+        function stopNote(note, keyElement) {
+            if (activeOscillators[note]) {
+                activeOscillators[note].forEach(s => s.stop());
+                delete activeOscillators[note];
+            }
+            keyElement.classList.remove('active');
+        }
+
+        function toggleDrone(note) {
+            initAudio();
+            
+            const btn = document.querySelector(`[data-drone="${note === 'C3' ? 'Sa' : 'Pa'}"]`);
+            
+            if (activeDrones[note]) {
+                activeDrones[note].stop();
+                delete activeDrones[note];
+                btn.classList.remove('active');
+            } else {
+                if (airLevel < 10) {
+                    showNoAirWarning();
+                    return;
+                }
+                const freq = note === 'C3' ? baseFreq / 2 : (baseFreq / 2) * 1.5;
+                activeDrones[note] = createHarmoniumSound(freq);
+                btn.classList.add('active');
+            }
+        }
+
+        function toggleOctave(type) {
+            const btn = document.querySelector(`[data-octave="${type}"]`);
+            if (type === 'low') {
+                lowOctave = !lowOctave;
+                btn.classList.toggle('active', lowOctave);
+            } else {
+                highOctave = !highOctave;
+                btn.classList.toggle('active', highOctave);
+            }
+        }
+
+        function setScale(note) {
+            baseFreq = noteFrequencies[note];
+            document.querySelectorAll('.scale-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Stop all drones and restart if active
+            Object.keys(activeDrones).forEach(d => {
+                activeDrones[d].stop();
+                delete activeDrones[d];
+            });
+            document.querySelectorAll('.stop-knob[data-drone]').forEach(b => b.classList.remove('active'));
+        }
+
+        function showNoAirWarning() {
+            const warning = document.getElementById('noAirWarning');
+            warning.classList.add('show');
+            setTimeout(() => warning.classList.remove('show'), 1500);
+        }
+
+        function updateAirLevel() {
+            const level = document.getElementById('airLevel');
+            level.style.width = airLevel + '%';
+            level.classList.toggle('low', airLevel < 20);
+            
+            // Update drone volumes based on air
+            Object.values(activeDrones).forEach(d => {
+                d.gains.forEach(g => {
+                    g.gain.setValueAtTime(g.gain.value * (airLevel / 100), audioCtx.currentTime);
+                });
+            });
+        }
+
+        function pumpBellows() {
+            isPumping = true;
+            airLevel = Math.min(100, airLevel + 3);
+            updateAirLevel();
+            document.getElementById('bellows').classList.add('compressed');
+        }
+
+        function releaseBellows() {
+            isPumping = false;
+            document.getElementById('bellows').classList.remove('compressed');
+        }
+
+        // Create keyboard
+        function createKeyboard() {
+            const whiteKeysContainer = document.getElementById('whiteKeys');
+            const blackKeysContainer = document.getElementById('blackKeys');
+
+            // White keys
+            whiteNotes.forEach((note, i) => {
+                const key = document.createElement('div');
+                key.className = 'white-key';
+                key.dataset.note = note;
+                key.innerHTML = `
+                    <span class="note-label">${note.replace('2', '')}</span>
+                    <span class="key-label">${whiteKeyMap[i]}</span>
+                `;
+                
+                key.addEventListener('mousedown', () => playNote(note, key));
+                key.addEventListener('mouseup', () => stopNote(note, key));
+                key.addEventListener('mouseleave', () => stopNote(note, key));
+                key.addEventListener('touchstart', (e) => { e.preventDefault(); playNote(note, key); });
+                key.addEventListener('touchend', () => stopNote(note, key));
+                
+                whiteKeysContainer.appendChild(key);
+            });
+
+            // Black keys
+            blackNotes.forEach((note, i) => {
+                const slot = document.createElement('div');
+                slot.className = 'black-key-slot' + (note === null ? ' empty' : '');
+                
+                if (note !== null) {
+                    const key = document.createElement('div');
+                    key.className = 'black-key';
+                    key.dataset.note = note;
+                    key.innerHTML = `<span class="key-label">${blackKeyMap[i]}</span>`;
+                    
+                    key.addEventListener('mousedown', () => playNote(note, key));
+                    key.addEventListener('mouseup', () => stopNote(note, key));
+                    key.addEventListener('mouseleave', () => stopNote(note, key));
+                    key.addEventListener('touchstart', (e) => { e.preventDefault(); playNote(note, key); });
+                    key.addEventListener('touchend', () => stopNote(note, key));
+                    
+                    slot.appendChild(key);
+                }
+                
+                blackKeysContainer.appendChild(slot);
+            });
+        }
+
+        // Keyboard controls
+        const keyToNote = {
+            'a': 'C', 's': 'D', 'd': 'E', 'f': 'F', 'g': 'G', 'h': 'A', 'j': 'B', 'k': 'C2', 'l': 'D2',
+            'w': 'C#', 'e': 'D#', 't': 'F#', 'y': 'G#', 'u': 'A#'
+        };
+
+        document.addEventListener('keydown', (e) => {
+            if (e.repeat) return;
+            
+            if (e.code === 'Space') {
+                e.preventDefault();
+                pumpBellows();
+                return;
+            }
+            
+            const note = keyToNote[e.key.toLowerCase()];
+            if (note) {
+                const key = document.querySelector(`[data-note="${note}"]`);
+                if (key) playNote(note, key);
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.code === 'Space') {
+                releaseBellows();
+                return;
+            }
+            
+            const note = keyToNote[e.key.toLowerCase()];
+            if (note) {
+                const key = document.querySelector(`[data-note="${note}"]`);
+                if (key) stopNote(note, key);
+            }
+        });
+
+        // Bellows mouse control
+        const bellows = document.getElementById('bellows');
+        bellows.addEventListener('mousedown', pumpBellows);
+        bellows.addEventListener('mouseup', releaseBellows);
+        bellows.addEventListener('mouseleave', releaseBellows);
+        bellows.addEventListener('touchstart', (e) => { e.preventDefault(); pumpBellows(); });
+        bellows.addEventListener('touchend', releaseBellows);
+
+        // Air decay
+        setInterval(() => {
+            if (!isPumping && airLevel > 0) {
+                // Decay faster if playing notes
+                const notesPlaying = Object.keys(activeOscillators).length + Object.keys(activeDrones).length;
+                airLevel = Math.max(0, airLevel - (0.5 + notesPlaying * 0.3));
+                updateAirLevel();
+            }
+        }, 100);
+
+        // Initialize
+        createKeyboard();
+        updateAirLevel();
+        
+        // Start with some air for better UX
+        airLevel = 50;
+        updateAirLevel();
+    </script>
+</body>
+</html>

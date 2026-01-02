@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { ModelLoader } from '../utils/ModelLoader';
 
 export type EnemyType = 'rifle' | 'smg' | 'heavy' | 'boss';
 
@@ -36,10 +35,6 @@ export class Enemy {
   private deathTimer = 0;
   private isDying = false;
   
-  // Model animation
-  private mixer: THREE.AnimationMixer | null = null;
-  private idleAction: THREE.AnimationAction | null = null;
-  
   // Terrain and collision
   private getTerrainHeight: ((x: number, z: number) => number) | null = null;
   private colliders: THREE.Box3[] = [];
@@ -53,60 +48,19 @@ export class Enemy {
     this.speed = config.speed;
     this.damage = config.damage;
     this.attackRate = config.attackRate;
-    
-    // Create placeholder mesh immediately
-    this.mesh = this.createPlaceholderMesh(config);
+    this.mesh = this.createMesh(config);
     this.mesh.position.copy(position);
     this.mesh.scale.setScalar(config.scale);
     scene.add(this.mesh);
-    
-    // Load real 3D model async
-    this.loadModel(config);
   }
 
-  private async loadModel(config: EnemyConfig): Promise<void> {
-    try {
-      const model = await ModelLoader.loadAndClone('soldier', config.scale);
-      
-      // Replace placeholder with real model
-      const pos = this.mesh.position.clone();
-      const rot = this.mesh.rotation.clone();
-      this.scene.remove(this.mesh);
-      
-      this.mesh = model;
-      this.mesh.position.copy(pos);
-      this.mesh.rotation.copy(rot);
-      
-      // Add health bar to model
-      this.addHealthBar();
-      
-      this.scene.add(this.mesh);
-      
-      // Setup animations if available
-      const gltf = await ModelLoader.load('soldier');
-      if (gltf.animations.length > 0) {
-        this.mixer = new THREE.AnimationMixer(this.mesh);
-        // Try to find walk/idle animations
-        gltf.animations.forEach(clip => {
-          if (clip.name.toLowerCase().includes('idle')) {
-            this.idleAction = this.mixer!.clipAction(clip.clone());
-          }
-        });
-        // Start idle if available
-        this.idleAction?.play();
-      }
-    } catch (error) {
-      console.warn('Failed to load enemy model, using fallback');
-    }
-  }
-  
-  private createPlaceholderMesh(config: EnemyConfig): THREE.Group {
+  private createMesh(config: EnemyConfig): THREE.Group {
+    const group = new THREE.Group();
+    
     // Boss gets special appearance
     if (this.type === 'boss') {
       return this.createBossMesh(config);
     }
-    
-    const group = new THREE.Group();
     
     const bodyMaterial = new THREE.MeshStandardMaterial({ color: config.color, roughness: 0.7 });
     const skinMaterial = new THREE.MeshStandardMaterial({ color: 0xd4a574, roughness: 0.6 });
@@ -343,34 +297,8 @@ export class Enemy {
     return weapon;
   }
 
-  private addHealthBar(): void {
-    // Health bar background
-    const healthBarBg = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.8, 0.08),
-      new THREE.MeshBasicMaterial({ color: 0x333333 })
-    );
-    healthBarBg.position.y = 2.3;
-    healthBarBg.name = 'healthBarBg';
-    this.mesh.add(healthBarBg);
-
-    // Health bar fill
-    const healthBarFill = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.8, 0.08),
-      new THREE.MeshBasicMaterial({ color: 0x00ff00 })
-    );
-    healthBarFill.position.y = 2.3;
-    healthBarFill.position.z = 0.01;
-    healthBarFill.name = 'healthBarFill';
-    this.mesh.add(healthBarFill);
-  }
-
   public update(delta: number, playerPosition: THREE.Vector3): void {
     if (this.dead) return;
-
-    // Update animation mixer
-    if (this.mixer) {
-      this.mixer.update(delta);
-    }
 
     if (this.isDying) {
       this.deathTimer += delta;

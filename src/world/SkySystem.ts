@@ -36,7 +36,7 @@ export class SkySystem {
   }
 
   private createSun(): void {
-    const pos = new THREE.Vector3(100, 80, 60);
+    const pos = new THREE.Vector3(100, 120, 80); // Higher sun for better highlight angles
 
     // Cute cartoon sun - warm off-white (no pure white)
     const sun = new THREE.Mesh(
@@ -54,18 +54,18 @@ export class SkySystem {
     glow.position.copy(pos);
     this.scene.add(glow);
 
-    // === BRIGHT LIGHTING SETUP - Scene must never appear dark ===
+    // === REFINED LIGHTING - Soft depth, not flat brightness ===
     
-    // 1. Bright ambient light - ensures no dark areas
-    const ambient = new THREE.AmbientLight(0xFFF8F0, 1.0);
+    // 1. Bright ambient - fills shadows but not overwhelming
+    const ambient = new THREE.AmbientLight(0xE8F0FF, 0.65); // Slightly cooler, less intense
     this.scene.add(ambient);
 
-    // 2. Warm directional sun light with soft shadows
-    this.sun = new THREE.DirectionalLight(0xFFF5E0, 0.8);
+    // 2. ONE warm directional sun - creates gentle highlights and soft shadows
+    this.sun = new THREE.DirectionalLight(0xFFF2D9, 1.1); // Warmer, stronger for highlights
     this.sun.position.copy(pos);
     this.sun.castShadow = true;
     
-    // Soft PCF shadow settings
+    // Soft light gray shadows - not dark, not flat
     this.sun.shadow.mapSize.set(2048, 2048);
     this.sun.shadow.camera.near = 1;
     this.sun.shadow.camera.far = 400;
@@ -73,9 +73,9 @@ export class SkySystem {
     this.sun.shadow.camera.right = 150;
     this.sun.shadow.camera.top = 150;
     this.sun.shadow.camera.bottom = -150;
-    this.sun.shadow.bias = -0.0005;
-    this.sun.shadow.normalBias = 0.02;
-    this.sun.shadow.radius = 8; // Very soft shadow edges
+    this.sun.shadow.bias = -0.0003;
+    this.sun.shadow.normalBias = 0.015;
+    this.sun.shadow.radius = 5; // Soft but visible shadow edges
     this.scene.add(this.sun);
   }
 

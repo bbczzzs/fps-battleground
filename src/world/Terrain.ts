@@ -388,8 +388,8 @@ export class Terrain {
   private createCar(x: number, z: number): void {
     const groundY = this.getHeightAt(x, z);
     const group = new THREE.Group();
-    const colors = [0x8a2a2a, 0x2a4a6a, 0x3a3a3a];
-    const body = new THREE.MeshStandardMaterial({ color: colors[Math.floor(Math.random() * colors.length)], metalness: 0.6, roughness: 0.4 });
+    const colors = [0xE76F51, 0x87CEEB, 0xF4A261];
+    const body = new THREE.MeshStandardMaterial({ color: colors[Math.floor(Math.random() * colors.length)], metalness: 0, roughness: 0.9 });
     
     const car = new THREE.Mesh(new THREE.BoxGeometry(2, 1, 4), body);
     car.position.y = 0.7;
@@ -400,7 +400,7 @@ export class Terrain {
     roof.position.set(0, 1.5, -0.3);
     group.add(roof);
     
-    const wheel = new THREE.MeshStandardMaterial({ color: 0x1a1a1a });
+    const wheel = new THREE.MeshStandardMaterial({ color: 0x5C5C68, roughness: 0.9, metalness: 0 });
     [[0.9, 0.35, 1.2], [-0.9, 0.35, 1.2], [0.9, 0.35, -1.2], [-0.9, 0.35, -1.2]].forEach(([wx, wy, wz]) => {
       const w = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.3, 8), wheel);
       w.rotation.z = Math.PI / 2;
@@ -429,7 +429,7 @@ export class Terrain {
   
   private createTank(x: number, z: number, r: number, h: number): void {
     const groundY = this.getHeightAt(x, z);
-    const tank = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, 16), new THREE.MeshStandardMaterial({ color: 0x7a7a7a, metalness: 0.3 }));
+    const tank = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, 16), new THREE.MeshStandardMaterial({ color: 0xB0B0B8, metalness: 0, roughness: 0.9 }));
     tank.position.set(x, groundY + h / 2, z);
     tank.castShadow = true;
     this.scene.add(tank);
@@ -442,7 +442,7 @@ export class Terrain {
   
   private createContainer(x: number, z: number, color: number): void {
     const groundY = this.getHeightAt(x, z);
-    const container = new THREE.Mesh(new THREE.BoxGeometry(12, 3, 3), new THREE.MeshStandardMaterial({ color, roughness: 0.7 }));
+    const container = new THREE.Mesh(new THREE.BoxGeometry(12, 3, 3), new THREE.MeshStandardMaterial({ color, roughness: 0.9, metalness: 0 }));
     container.position.set(x, groundY + 1.5, z);
     container.castShadow = true;
     this.scene.add(container);
@@ -516,10 +516,10 @@ export class Terrain {
       new THREE.CircleGeometry(30, 32),
       new THREE.MeshStandardMaterial({ 
         color: 0x87CEEB, 
-        metalness: 0.2, 
-        roughness: 0.3, 
+        metalness: 0, 
+        roughness: 0.85, 
         transparent: true, 
-        opacity: 0.9 
+        opacity: 0.85 
       })
     );
     water.rotation.x = -Math.PI / 2;
@@ -547,10 +547,10 @@ export class Terrain {
     // Cartoon bright water
     const waterMaterial = new THREE.MeshStandardMaterial({ 
       color: 0x7EC8E3, 
-      metalness: 0.1, 
-      roughness: 0.4, 
+      metalness: 0, 
+      roughness: 0.85, 
       transparent: true, 
-      opacity: 0.9 
+      opacity: 0.85 
     });
 
     // Create winding river using multiple segments
@@ -643,7 +643,7 @@ export class Terrain {
     }
 
     // Rope cleats
-    const metalMaterial = new THREE.MeshStandardMaterial({ color: 0x4a4a4a, metalness: 0.8 });
+    const metalMaterial = new THREE.MeshStandardMaterial({ color: 0x7A7A88, metalness: 0, roughness: 0.9 });
     [-5, 5].forEach(pz => {
       const cleat = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.3, 8), metalMaterial);
       cleat.position.set(3.5, 0.8, pz);
@@ -657,13 +657,14 @@ export class Terrain {
 
   private createMountains(): void {
     const rockMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x6a6a6a, 
+      color: 0x8A8A98, 
       roughness: 0.95,
-      metalness: 0.1
+      metalness: 0
     });
     const snowMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0xffffff, 
-      roughness: 0.8 
+      color: 0xF0F5F8, 
+      roughness: 0.95,
+      metalness: 0 
     });
     const grassMaterial = new THREE.MeshStandardMaterial({ 
       color: 0x4a6a3a, 
@@ -846,7 +847,7 @@ export class Terrain {
   
   private createBarrier(x: number, z: number): void {
     const groundY = this.getHeightAt(x, z);
-    const barrier = new THREE.Mesh(new THREE.BoxGeometry(4, 1.5, 0.5), new THREE.MeshStandardMaterial({ color: 0xff6600, roughness: 0.7 }));
+    const barrier = new THREE.Mesh(new THREE.BoxGeometry(4, 1.5, 0.5), new THREE.MeshStandardMaterial({ color: 0xFFB347, roughness: 0.9, metalness: 0 }));
     barrier.position.set(x, groundY + 0.75, z);
     barrier.rotation.y = Math.random() * Math.PI;
     barrier.castShadow = true;
@@ -897,7 +898,7 @@ export class Terrain {
   private createBillboard(x: number, z: number, rotation: number, imagePath: string): void {
     const groundY = this.getHeightAt(x, z);
     const group = new THREE.Group();
-    const metalMaterial = new THREE.MeshStandardMaterial({ color: 0x4a4a4a, metalness: 0.5, roughness: 0.5 });
+    const metalMaterial = new THREE.MeshStandardMaterial({ color: 0x7A7A88, metalness: 0, roughness: 0.9 });
     
     // Support poles
     const poleHeight = 12;

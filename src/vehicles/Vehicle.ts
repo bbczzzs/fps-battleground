@@ -109,7 +109,7 @@ export class Vehicle {
       color: 0xCFE9FF, 
       transparent: true, 
       opacity: 0.7,
-      roughness: 0.3,
+      roughness: 0.85,
       metalness: 0
     });
 
@@ -174,7 +174,7 @@ export class Vehicle {
       color: 0xCFE9FF, 
       transparent: true, 
       opacity: 0.7,
-      roughness: 0.3,
+      roughness: 0.85,
       metalness: 0
     });
 
@@ -289,7 +289,7 @@ export class Vehicle {
     // Big cute cockpit bubble - sky color
     const cockpit = new THREE.Mesh(
       new THREE.SphereGeometry(0.8, 16, 16, 0, Math.PI, 0, Math.PI / 2),
-      new THREE.MeshStandardMaterial({ color: 0xCFE9FF, transparent: true, opacity: 0.7, roughness: 0.3, metalness: 0 })
+      new THREE.MeshStandardMaterial({ color: 0xCFE9FF, transparent: true, opacity: 0.7, roughness: 0.85, metalness: 0 })
     );
     cockpit.position.set(0, 2.2, 2);
     cockpit.rotation.x = Math.PI;

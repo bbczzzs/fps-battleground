@@ -138,7 +138,7 @@ export class MultiWeapon {
 
   private createRifleMesh(): THREE.Group {
     const group = new THREE.Group();
-    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, metalness: 0.8, roughness: 0.3 });
+    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x5A5A68, metalness: 0, roughness: 0.9 });
     
     // Main body
     const body = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.6), bodyMat);
@@ -162,7 +162,7 @@ export class MultiWeapon {
 
   private createShotgunMesh(): THREE.Group {
     const group = new THREE.Group();
-    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x4a3020, metalness: 0.5, roughness: 0.6 });
+    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x8B6B50, metalness: 0, roughness: 0.9 });
     
     // Main body (wooden stock)
     const body = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.5), bodyMat);
@@ -171,7 +171,7 @@ export class MultiWeapon {
     // Barrel (thicker)
     const barrel = new THREE.Mesh(
       new THREE.CylinderGeometry(0.025, 0.025, 0.5),
-      new THREE.MeshStandardMaterial({ color: 0x1a1a1a, metalness: 0.9, roughness: 0.2 })
+      new THREE.MeshStandardMaterial({ color: 0x4A4A58, metalness: 0, roughness: 0.9 })
     );
     barrel.rotation.z = Math.PI / 2;
     barrel.position.z = -0.5;
@@ -190,7 +190,7 @@ export class MultiWeapon {
 
   private createSniperMesh(): THREE.Group {
     const group = new THREE.Group();
-    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x1a3a1a, metalness: 0.7, roughness: 0.4 });
+    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x5A7A5A, metalness: 0, roughness: 0.9 });
     
     // Main body
     const body = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.7), bodyMat);
@@ -206,7 +206,7 @@ export class MultiWeapon {
     // Scope
     const scopeBody = new THREE.Mesh(
       new THREE.CylinderGeometry(0.03, 0.03, 0.25),
-      new THREE.MeshStandardMaterial({ color: 0x000000, metalness: 0.9, roughness: 0.1 })
+      new THREE.MeshStandardMaterial({ color: 0x3A3A48, metalness: 0, roughness: 0.9 })
     );
     scopeBody.rotation.z = Math.PI / 2;
     scopeBody.position.y = 0.12;
@@ -231,7 +231,7 @@ export class MultiWeapon {
 
   private createSMGMesh(): THREE.Group {
     const group = new THREE.Group();
-    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x3a3a3a, metalness: 0.8, roughness: 0.3 });
+    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x5A5A68, metalness: 0, roughness: 0.9 });
     
     // Compact body
     const body = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.07, 0.4), bodyMat);

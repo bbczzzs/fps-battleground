@@ -31,9 +31,9 @@ export class Helicopter {
     const group = new THREE.Group();
 
     const bodyMaterial = new THREE.MeshStandardMaterial({
-      color: 0x2a3f2a,
-      roughness: 0.6,
-      metalness: 0.3
+      color: 0x7A9A7A,
+      roughness: 0.9,
+      metalness: 0
     });
 
     // Main body
@@ -49,11 +49,11 @@ export class Helicopter {
     const cockpit = new THREE.Mesh(
       new THREE.SphereGeometry(1.2, 16, 16, 0, Math.PI),
       new THREE.MeshStandardMaterial({
-        color: 0x87ceeb,
+        color: 0xCFE9FF,
         transparent: true,
-        opacity: 0.6,
-        roughness: 0.1,
-        metalness: 0.5
+        opacity: 0.7,
+        roughness: 0.85,
+        metalness: 0
       })
     );
     cockpit.position.set(2.5, 0.3, 0);
@@ -81,7 +81,7 @@ export class Helicopter {
     // Main rotor hub
     const rotorHub = new THREE.Mesh(
       new THREE.CylinderGeometry(0.3, 0.3, 0.5, 8),
-      new THREE.MeshStandardMaterial({ color: 0x333333 })
+      new THREE.MeshStandardMaterial({ color: 0x5A5A68, metalness: 0, roughness: 0.9 })
     );
     rotorHub.position.y = 1.8;
     group.add(rotorHub);
@@ -89,7 +89,7 @@ export class Helicopter {
     // Main rotor blades
     this.rotor = new THREE.Mesh(
       new THREE.BoxGeometry(12, 0.1, 0.4),
-      new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.5 })
+      new THREE.MeshStandardMaterial({ color: 0x4A4A58, metalness: 0, roughness: 0.9 })
     );
     this.rotor.position.y = 2;
     group.add(this.rotor);
@@ -97,7 +97,7 @@ export class Helicopter {
     // Second rotor blade
     const rotor2 = new THREE.Mesh(
       new THREE.BoxGeometry(12, 0.1, 0.4),
-      new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.5 })
+      new THREE.MeshStandardMaterial({ color: 0x4A4A58, metalness: 0, roughness: 0.9 })
     );
     rotor2.rotation.y = Math.PI / 2;
     this.rotor.add(rotor2);
@@ -105,14 +105,14 @@ export class Helicopter {
     // Tail rotor
     this.tailRotor = new THREE.Mesh(
       new THREE.BoxGeometry(2, 0.1, 0.2),
-      new THREE.MeshStandardMaterial({ color: 0x222222 })
+      new THREE.MeshStandardMaterial({ color: 0x4A4A58, metalness: 0, roughness: 0.9 })
     );
     this.tailRotor.position.set(-6.5, 1, 0.3);
     this.tailRotor.rotation.x = Math.PI / 2;
     group.add(this.tailRotor);
 
     // Landing skids
-    const skidMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
+    const skidMaterial = new THREE.MeshStandardMaterial({ color: 0x5A5A68, metalness: 0, roughness: 0.9 });
     [-1, 1].forEach(side => {
       const skid = new THREE.Mesh(
         new THREE.BoxGeometry(4, 0.15, 0.15),

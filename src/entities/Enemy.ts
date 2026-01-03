@@ -105,7 +105,7 @@ export class Enemy {
     });
 
     // Big cartoon eyes
-    const eyeWhite = new THREE.MeshStandardMaterial({ color: 0xFFFFFF, roughness: 0.5, metalness: 0 });
+    const eyeWhite = new THREE.MeshStandardMaterial({ color: 0xFFFFF5, roughness: 0.9, metalness: 0 });
     const eyePupil = new THREE.MeshBasicMaterial({ color: 0x2C2C2C });
     [-0.15, 0.15].forEach(x => {
       const white = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 12), eyeWhite);
@@ -197,10 +197,10 @@ export class Enemy {
     const group = new THREE.Group();
     const bodyMaterial = new THREE.MeshStandardMaterial({ 
       color: config.color, 
-      roughness: 0.3,
-      metalness: 0.7,
+      roughness: 0.9,
+      metalness: 0,
       emissive: 0x440000,
-      emissiveIntensity: 0.5
+      emissiveIntensity: 0.3
     });
 
     // Large armored torso
@@ -214,9 +214,11 @@ export class Enemy {
     const head = new THREE.Mesh(
       new THREE.BoxGeometry(0.5, 0.5, 0.5), 
       new THREE.MeshStandardMaterial({ 
-        color: 0x000000, 
+        color: 0x3A3A48, 
         emissive: 0xff0000, 
-        emissiveIntensity: 0.8 
+        emissiveIntensity: 0.6,
+        roughness: 0.9,
+        metalness: 0 
       })
     );
     head.position.y = 2.5;
@@ -276,7 +278,7 @@ export class Enemy {
       const angle = (i / 6) * Math.PI * 2;
       const barrel = new THREE.Mesh(
         new THREE.CylinderGeometry(0.04, 0.04, 1.2, 8),
-        new THREE.MeshStandardMaterial({ color: 0x1a1a1a, metalness: 0.9 })
+        new THREE.MeshStandardMaterial({ color: 0x4A4A58, metalness: 0, roughness: 0.9 })
       );
       barrel.rotation.x = Math.PI / 2;
       barrel.position.x = Math.cos(angle) * 0.15;
@@ -321,7 +323,7 @@ export class Enemy {
 
   private createWeaponMesh(): THREE.Group {
     const weapon = new THREE.Group();
-    const gunMaterial = new THREE.MeshStandardMaterial({ color: 0x2d2d2d, metalness: 0.5 });
+    const gunMaterial = new THREE.MeshStandardMaterial({ color: 0x5A5A68, metalness: 0, roughness: 0.9 });
     if (this.type === 'heavy') {
       const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.8, 8), gunMaterial);
       barrel.rotation.x = Math.PI / 2;

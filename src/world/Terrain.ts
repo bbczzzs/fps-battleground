@@ -203,11 +203,16 @@ export class Terrain {
   }
 
   private createMainRoads(): void {
-    const asphalt = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.85 });
-    const yellow = new THREE.MeshBasicMaterial({ color: 0xffcc00 });
+    // Cartoon clay/foam road - dark warm gray, not pure black asphalt
+    const cartoonRoad = new THREE.MeshStandardMaterial({ 
+      color: 0x4A5568,  // Soft blue-gray (like clay)
+      roughness: 1.0,   // Matte finish
+      metalness: 0 
+    });
+    const yellowLine = new THREE.MeshBasicMaterial({ color: 0xFFD166 }); // Palette yellow
     
     for (let x = -150; x < 150; x += 12) {
-      const road = new THREE.Mesh(new THREE.PlaneGeometry(12.5, 10), asphalt);
+      const road = new THREE.Mesh(new THREE.PlaneGeometry(12.5, 10), cartoonRoad);
       road.rotation.x = -Math.PI / 2;
       road.position.set(x + 6, this.getHeightAt(x, 0) + 0.12, 0);
       road.receiveShadow = true;
@@ -215,7 +220,7 @@ export class Terrain {
     }
     
     for (let z = -150; z < 150; z += 12) {
-      const road = new THREE.Mesh(new THREE.PlaneGeometry(10, 12.5), asphalt);
+      const road = new THREE.Mesh(new THREE.PlaneGeometry(10, 12.5), cartoonRoad);
       road.rotation.x = -Math.PI / 2;
       road.position.set(0, this.getHeightAt(0, z) + 0.12, z + 6);
       road.receiveShadow = true;
@@ -223,7 +228,7 @@ export class Terrain {
     }
     
     for (let i = -140; i < 140; i += 8) {
-      const mark = new THREE.Mesh(new THREE.PlaneGeometry(4, 0.2), yellow);
+      const mark = new THREE.Mesh(new THREE.PlaneGeometry(4, 0.3), yellowLine);
       mark.rotation.x = -Math.PI / 2;
       mark.position.set(i + 2, this.getHeightAt(i, 0) + 0.15, 0);
       this.scene.add(mark);

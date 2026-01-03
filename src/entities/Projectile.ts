@@ -17,22 +17,22 @@ export class Projectile {
     this.scene = scene;
     this.velocity = direction.normalize().multiplyScalar(speed);
 
-    // Cute cartoon bullet - big and colorful!
+    // Cute cartoon bullet - using palette colors!
     const geometry = new THREE.SphereGeometry(0.15, 12, 8);
     const material = new THREE.MeshStandardMaterial({ 
-      color: 0xFFE66D,  // Bright yellow
+      color: 0xFFD166,  // Building yellow from palette
       roughness: 0.8,
       metalness: 0,
-      emissive: 0xFFE66D,
+      emissive: 0xFFD166,
       emissiveIntensity: 0.3
     });
     this.mesh = new THREE.Mesh(geometry, material);
     this.mesh.position.copy(position);
     
-    // Cute sparkle trail
+    // Cute sparkle trail using accent color
     const trailGeometry = new THREE.ConeGeometry(0.1, 0.4, 6);
     const trailMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0xFF6B6B,
+      color: 0xE76F51,  // Accent from palette
       roughness: 0.9,
       metalness: 0,
       transparent: true,

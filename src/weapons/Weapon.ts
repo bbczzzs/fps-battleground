@@ -116,21 +116,21 @@ export class Weapon {
   private createWeaponMesh(): THREE.Group {
     const group = new THREE.Group();
 
-    // Cartoon toy gun - bright and chunky!
-    // Gun body - rounded colorful
+    // Cartoon toy gun - using palette colors!
+    // Gun body - accent coral color
     const bodyGeometry = new THREE.BoxGeometry(0.12, 0.15, 0.5);
     const bodyMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0xFF6B6B,  // Bright coral red
+      color: 0xE76F51,  // Accent from palette
       roughness: 0.9,
       metalness: 0
     });
     const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
     group.add(body);
 
-    // Chunky barrel - bright orange
+    // Chunky barrel - character orange
     const barrelGeometry = new THREE.CylinderGeometry(0.04, 0.05, 0.35, 12);
     const barrelMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0xFFB347,  // Pastel orange
+      color: 0xF4A261,  // Character from palette
       roughness: 0.9,
       metalness: 0
     });
@@ -143,7 +143,7 @@ export class Weapon {
     // Orange tip (toy gun style)
     const tipGeometry = new THREE.SphereGeometry(0.045, 12, 8);
     const tipMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0xFFA500,
+      color: 0xFFD166,  // Building yellow from palette
       roughness: 0.9,
       metalness: 0
     });
@@ -152,10 +152,10 @@ export class Weapon {
     tip.position.y = 0.02;
     group.add(tip);
 
-    // Handle - cute purple
+    // Handle - soft gray-blue for shadows
     const handleGeometry = new THREE.BoxGeometry(0.08, 0.18, 0.1);
     const handleMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x9B59B6,  // Purple
+      color: 0x7A8A9A,  // Soft gray-blue
       roughness: 0.9,
       metalness: 0
     });
@@ -165,10 +165,10 @@ export class Weapon {
     handle.rotation.x = -0.2;
     group.add(handle);
 
-    // Cute round sight - yellow
+    // Cute round sight - building yellow
     const sightGeometry = new THREE.SphereGeometry(0.025, 8, 6);
     const sightMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0xFFE66D,  // Bright yellow
+      color: 0xFFD166,  // Building yellow
       roughness: 0.9,
       metalness: 0
     });

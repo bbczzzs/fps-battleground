@@ -18,13 +18,13 @@ export class SkySystem {
     canvas.height = 512;
     const ctx = canvas.getContext('2d')!;
 
-    // Pastel cartoon sky gradient
+    // Sky gradient from palette
     const gradient = ctx.createLinearGradient(0, 0, 0, 512);
-    gradient.addColorStop(0, '#87CEEB');    // Light sky blue
-    gradient.addColorStop(0.3, '#B0E0E6');  // Powder blue
-    gradient.addColorStop(0.6, '#E0F4FF');  // Very light blue
-    gradient.addColorStop(0.85, '#FFF5EE'); // Seashell
-    gradient.addColorStop(1, '#FFEFD5');    // Papaya whip
+    gradient.addColorStop(0, '#CFE9FF');    // Sky from palette
+    gradient.addColorStop(0.3, '#DAF0FF');  // Lighter sky
+    gradient.addColorStop(0.6, '#E8F6FF');  // Very light
+    gradient.addColorStop(0.85, '#FFF8F0'); // Warm hint
+    gradient.addColorStop(1, '#FFEDDC');    // Warm horizon
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 512, 512);
 
@@ -39,24 +39,24 @@ export class SkySystem {
   private createSun(): void {
     const pos = new THREE.Vector3(100, 80, 60);
 
-    // Cute cartoon sun
+    // Cute cartoon sun - warm off-white (no pure white)
     const sun = new THREE.Mesh(
       new THREE.SphereGeometry(15, 32, 32),
-      new THREE.MeshBasicMaterial({ color: 0xFFE066 })
+      new THREE.MeshBasicMaterial({ color: 0xFFE8B8 })
     );
     sun.position.copy(pos);
     this.scene.add(sun);
 
-    // Soft glow
+    // Soft glow using character color
     const glow = new THREE.Mesh(
       new THREE.SphereGeometry(25, 32, 32),
-      new THREE.MeshBasicMaterial({ color: 0xFFF8DC, transparent: true, opacity: 0.4 })
+      new THREE.MeshBasicMaterial({ color: 0xF4A261, transparent: true, opacity: 0.35 })
     );
     glow.position.copy(pos);
     this.scene.add(glow);
 
-    // Warm directional light
-    this.sun = new THREE.DirectionalLight(0xFFFAF0, 1.2);
+    // Warm directional light (off-white)
+    this.sun = new THREE.DirectionalLight(0xFFF8E8, 1.2);
     this.sun.position.copy(pos);
     this.sun.castShadow = true;
     this.sun.shadow.mapSize.set(2048, 2048);
@@ -70,11 +70,11 @@ export class SkySystem {
     this.sun.shadow.radius = 4; // Soft shadow edges
     this.scene.add(this.sun);
 
-    // Strong ambient for even lighting
-    this.scene.add(new THREE.AmbientLight(0xFFFFFF, 0.7));
+    // Strong ambient for even lighting (soft off-white)
+    this.scene.add(new THREE.AmbientLight(0xFFF8F0, 0.7));
     
-    // Hemisphere for soft color blend
-    this.scene.add(new THREE.HemisphereLight(0x87CEEB, 0x98D982, 0.5));
+    // Hemisphere: sky color to ground color from palette
+    this.scene.add(new THREE.HemisphereLight(0xCFE9FF, 0xB7D3A8, 0.5));
   }
 
   private createClouds(): void {

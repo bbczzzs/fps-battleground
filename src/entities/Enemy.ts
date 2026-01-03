@@ -2,8 +2,8 @@ import * as THREE from 'three';
 
 export type EnemyType = 'rifle' | 'smg' | 'heavy' | 'boss';
 
-// Pastel cartoon colors
-const PASTEL_COLORS = [0xFF9AA2, 0xFFB7B2, 0xFFDAC1, 0xE2F0CB, 0xB5EAD7, 0xC7CEEA, 0xF0E6EF];
+// Character palette colors - no pure black or white
+const PASTEL_COLORS = [0xF4A261, 0xE9967A, 0xFFD166, 0xB7D3A8, 0xCFE9FF, 0xE76F51, 0xF5CEB3];
 
 interface EnemyConfig {
   health: number;
@@ -15,10 +15,10 @@ interface EnemyConfig {
 }
 
 const ENEMY_CONFIGS: Record<EnemyType, EnemyConfig> = {
-  rifle: { health: 80, speed: 2.5, damage: 15, attackRate: 0.8, color: 0xFF9AA2, scale: 1 },
-  smg: { health: 60, speed: 5, damage: 8, attackRate: 2, color: 0xB5EAD7, scale: 0.9 },
-  heavy: { health: 200, speed: 1.5, damage: 25, attackRate: 0.5, color: 0xC7CEEA, scale: 1.3 },
-  boss: { health: 1000, speed: 3, damage: 40, attackRate: 1.5, color: 0xFFB347, scale: 2.5 }
+  rifle: { health: 80, speed: 2.5, damage: 15, attackRate: 0.8, color: 0xF4A261, scale: 1 },
+  smg: { health: 60, speed: 5, damage: 8, attackRate: 2, color: 0xE9967A, scale: 0.9 },
+  heavy: { health: 200, speed: 1.5, damage: 25, attackRate: 0.5, color: 0xFFD166, scale: 1.3 },
+  boss: { health: 1000, speed: 3, damage: 40, attackRate: 1.5, color: 0xE76F51, scale: 2.5 }
 };
 
 export class Enemy {
@@ -72,7 +72,7 @@ export class Enemy {
       metalness: 0
     });
     const skinMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0xFFE4C4, // Bisque - cartoon skin
+      color: 0xFAE5D3, // Warm skin tone (no pure white)
       roughness: 0.9,
       metalness: 0
     });

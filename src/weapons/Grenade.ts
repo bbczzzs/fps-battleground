@@ -35,10 +35,10 @@ export class Grenade {
   }
 
   private createGrenadeMesh(): THREE.Mesh {
-    // Cute cartoon bomb - like a cherry bomb!
+    // Cute cartoon bomb - using accent color from palette!
     const geometry = new THREE.SphereGeometry(0.18, 16, 12);
     const material = new THREE.MeshStandardMaterial({
-      color: 0xFF6B6B,  // Bright red
+      color: 0xE76F51,  // Accent from palette
       metalness: 0,
       roughness: 0.9
     });
@@ -49,7 +49,7 @@ export class Grenade {
     // Add cute fuse/sparkle on top
     const fuseGeometry = new THREE.CylinderGeometry(0.025, 0.025, 0.12, 8);
     const fuseMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0xFFE66D,  // Yellow fuse
+      color: 0xFFD166,  // Building yellow from palette
       roughness: 0.9,
       metalness: 0
     });
@@ -57,11 +57,11 @@ export class Grenade {
     fuse.position.y = 0.2;
     grenade.add(fuse);
     
-    // Sparkle tip
+    // Sparkle tip - soft off-white (no pure white)
     const sparkleGeometry = new THREE.SphereGeometry(0.04, 8, 6);
     const sparkleMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0xFFFFFF,
-      emissive: 0xFFE66D,
+      color: 0xFFF8F0,
+      emissive: 0xFFD166,
       emissiveIntensity: 0.5,
       roughness: 0.8,
       metalness: 0

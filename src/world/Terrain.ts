@@ -1,20 +1,20 @@
 import * as THREE from 'three';
 
-// Pastel cartoon color palette
+// Cartoon color palette - no pure black or white
 const PASTEL = {
-  grass: 0x98D982,      // Soft green
-  grassAlt: 0xB8E986,   // Light lime
-  path: 0xF5DEB3,       // Wheat
-  water: 0x87CEEB,      // Sky blue
-  sand: 0xFFE4B5,       // Moccasin
-  rock: 0xD3D3D3,       // Light gray
-  wood: 0xDEB887,       // Burlywood
-  leaf: 0x90EE90,       // Light green
-  flower1: 0xFFB6C1,    // Light pink
-  flower2: 0xDDA0DD,    // Plum
-  flower3: 0xFFE066,    // Light yellow
-  building: 0xFFDAB9,   // Peach puff
-  roof: 0xFF9AA2,       // Pastel red
+  grass: 0xB7D3A8,      // Ground from palette
+  grassAlt: 0xC5DEB8,   // Lighter ground variation
+  path: 0xE8DCC8,       // Soft path (no pure white)
+  water: 0xCFE9FF,      // Sky blue from palette
+  sand: 0xFFE8C8,       // Warm sand
+  rock: 0xC8C8D0,       // Soft gray-blue
+  wood: 0xD4A574,       // Warm wood
+  leaf: 0xB7D3A8,       // Match ground
+  flower1: 0xF4A261,    // Character color from palette
+  flower2: 0xE76F51,    // Accent from palette
+  flower3: 0xFFD166,    // Building color from palette
+  building: 0xFFD166,   // Building from palette
+  roof: 0xE76F51,       // Accent from palette
 };
 
 export class Terrain {

@@ -73,7 +73,7 @@ export class Game {
   constructor() {
     // Scene setup
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0xB0E0E6); // Pastel sky fallback
+    this.scene.background = new THREE.Color(0xCFE9FF); // Sky color from palette
 
     // Camera setup - narrower FOV for cartoon feel
     this.camera = new THREE.PerspectiveCamera(

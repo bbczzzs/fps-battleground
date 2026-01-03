@@ -1,20 +1,20 @@
 import * as THREE from 'three';
 
-// Cartoon color palette - no pure black or white
+// VIBRANT CANDY PALETTE - Fall Guys style!
 const PASTEL = {
-  grass: 0xB7D3A8,      // Ground from palette
-  grassAlt: 0xC5DEB8,   // Lighter ground variation
-  path: 0xE8DCC8,       // Soft path (no pure white)
-  water: 0xCFE9FF,      // Sky blue from palette
-  sand: 0xFFE8C8,       // Warm sand
-  rock: 0xC8C8D0,       // Soft gray-blue
-  wood: 0xD4A574,       // Warm wood
-  leaf: 0xB7D3A8,       // Match ground
-  flower1: 0xF4A261,    // Character color from palette
-  flower2: 0xE76F51,    // Accent from palette
-  flower3: 0xFFD166,    // Building color from palette
-  building: 0xFFD166,   // Building from palette
-  roof: 0xE76F51,       // Accent from palette
+  grass: 0xFFCC33,      // Bright golden yellow like Fall Guys ground
+  grassAlt: 0xFFDD55,   // Lighter golden variation
+  path: 0xFFE066,       // Warm yellow path
+  water: 0x44CCFF,      // Bright cyan water
+  sand: 0xFFDD88,       // Warm sand
+  rock: 0xDD99CC,       // Pink-purple rocks
+  wood: 0xFF9966,       // Bright orange wood
+  leaf: 0x88DD66,       // Bright lime green
+  flower1: 0xFF6699,    // Hot pink
+  flower2: 0xFF5544,    // Bright red-orange
+  flower3: 0xFFDD33,    // Bright yellow
+  building: 0xFF7799,   // Hot pink buildings like Fall Guys
+  roof: 0xFF5566,       // Bright red roofs
 };
 
 export class Terrain {
@@ -106,11 +106,11 @@ export class Terrain {
     
     geometry.computeVertexNormals();
 
-    // Soft cartoon grass material
+    // GLOSSY candy ground - Fall Guys style!
     const material = new THREE.MeshStandardMaterial({
       color: PASTEL.grass,
-      roughness: 1.0,
-      metalness: 0,
+      roughness: 0.35,
+      metalness: 0.1,
       flatShading: false
     });
 
@@ -203,13 +203,13 @@ export class Terrain {
   }
 
   private createMainRoads(): void {
-    // Cartoon clay/foam road - dark warm gray, not pure black asphalt
+    // GLOSSY candy road - Fall Guys style!
     const cartoonRoad = new THREE.MeshStandardMaterial({ 
-      color: 0x4A5568,  // Soft blue-gray (like clay)
-      roughness: 1.0,   // Matte finish
-      metalness: 0 
+      color: 0xFF9988,  // Peachy pink road like Fall Guys
+      roughness: 0.4,   // Glossy shine
+      metalness: 0.05 
     });
-    const yellowLine = new THREE.MeshBasicMaterial({ color: 0xFFD166 }); // Palette yellow
+    const yellowLine = new THREE.MeshBasicMaterial({ color: 0xFFEE44 }); // Bright yellow
     
     for (let x = -150; x < 150; x += 12) {
       const road = new THREE.Mesh(new THREE.PlaneGeometry(12.5, 10), cartoonRoad);
@@ -252,22 +252,22 @@ export class Terrain {
     const groundY = this.getHeightAt(x, z);
     const group = new THREE.Group();
     
-    // Cartoon pastel building colors
-    const cartoonColors = [0xFFB6C1, 0xDDA0DD, 0xB0E0E6, 0x98FB98, 0xFFDAB9, 0xE6E6FA, 0xFFFACD];
+    // VIBRANT candy building colors - Fall Guys style!
+    const cartoonColors = [0xFF6699, 0x66DDFF, 0xFFDD44, 0x66FF99, 0xFF9966, 0xDD88FF, 0x88EEFF];
     const buildingColor = cartoonColors[Math.floor(Math.random() * cartoonColors.length)];
     
-    const wall = new THREE.MeshStandardMaterial({ color: buildingColor, roughness: 1, metalness: 0 });
+    const wall = new THREE.MeshStandardMaterial({ color: buildingColor, roughness: 0.4, metalness: 0.05 });
     const building = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), wall);
     building.position.y = h / 2;
     building.castShadow = true;
     group.add(building);
     
-    // Cute colorful roof
-    const roofColors = [0xFF6B6B, 0x4ECDC4, 0xFFE66D, 0x95E1D3];
+    // Bright shiny roof - Fall Guys candy style!
+    const roofColors = [0xFF4466, 0x44DDCC, 0xFFCC22, 0x66EE99];
     const roofColor = roofColors[Math.floor(Math.random() * roofColors.length)];
     const roof = new THREE.Mesh(
       new THREE.ConeGeometry(Math.max(w, d) * 0.8, h * 0.4, 4),
-      new THREE.MeshStandardMaterial({ color: roofColor, roughness: 1, metalness: 0 })
+      new THREE.MeshStandardMaterial({ color: roofColor, roughness: 0.35, metalness: 0.1 })
     );
     roof.position.y = h + h * 0.2;
     roof.rotation.y = Math.PI / 4;
@@ -287,7 +287,7 @@ export class Terrain {
     // Add cute door
     const door = new THREE.Mesh(
       new THREE.PlaneGeometry(2, 3),
-      new THREE.MeshStandardMaterial({ color: 0x8B4513, roughness: 1, metalness: 0 })
+      new THREE.MeshStandardMaterial({ color: 0xFF7755, roughness: 0.4, metalness: 0 })
     );
     door.position.set(0, 1.5, d/2 + 0.05);
     group.add(door);
@@ -305,8 +305,8 @@ export class Terrain {
     const groundY = this.getHeightAt(x, z);
     const group = new THREE.Group();
     
-    // Cute wooden lookout tower
-    const wood = new THREE.MeshStandardMaterial({ color: 0xDEB887, roughness: 1, metalness: 0 });
+    // Cute wooden lookout tower - glossy candy style
+    const wood = new THREE.MeshStandardMaterial({ color: 0xFFBB77, roughness: 0.4, metalness: 0 });
     
     // Chunky wooden legs
     [[-1.5, -1.5], [1.5, -1.5], [-1.5, 1.5], [1.5, 1.5]].forEach(([lx, lz]) => {
@@ -319,7 +319,7 @@ export class Terrain {
     // Cute platform
     const platform = new THREE.Mesh(
       new THREE.BoxGeometry(5, 0.5, 5),
-      new THREE.MeshStandardMaterial({ color: 0xF5DEB3, roughness: 1, metalness: 0 })
+      new THREE.MeshStandardMaterial({ color: 0xFFDD88, roughness: 0.4, metalness: 0 })
     );
     platform.position.y = 8;
     platform.castShadow = true;
@@ -328,7 +328,7 @@ export class Terrain {
     // Little roof
     const roof = new THREE.Mesh(
       new THREE.ConeGeometry(4, 2, 4),
-      new THREE.MeshStandardMaterial({ color: 0xFF7F50, roughness: 1, metalness: 0 })
+      new THREE.MeshStandardMaterial({ color: 0xFF6644, roughness: 0.35, metalness: 0 })
     );
     roof.position.y = 10;
     roof.rotation.y = Math.PI / 4;
@@ -469,19 +469,19 @@ export class Terrain {
   private createTree(x: number, z: number): void {
     const group = new THREE.Group();
     
-    // Cartoon-style chunky trunk - warm brown
+    // GLOSSY candy trunk - warm orange-brown
     const trunk = new THREE.Mesh(
       new THREE.CylinderGeometry(0.5, 0.7, 3, 12),
-      new THREE.MeshStandardMaterial({ color: 0xA0522D, roughness: 1, metalness: 0 })
+      new THREE.MeshStandardMaterial({ color: 0xCC7744, roughness: 0.4, metalness: 0.05 })
     );
     trunk.position.y = 1.5;
     trunk.castShadow = true;
     group.add(trunk);
     
-    // Puffy cartoon foliage - multiple spheres for cotton-candy look
-    const foliageColors = [0x90EE90, 0x98FB98, 0x7CFC00, 0x32CD32];
+    // GLOSSY bright foliage - candy cotton look
+    const foliageColors = [0x55EE66, 0x44DD55, 0x66FF77, 0x33CC44];
     const foliageColor = foliageColors[Math.floor(Math.random() * foliageColors.length)];
-    const foliageMat = new THREE.MeshStandardMaterial({ color: foliageColor, roughness: 1, metalness: 0 });
+    const foliageMat = new THREE.MeshStandardMaterial({ color: foliageColor, roughness: 0.35, metalness: 0.1 });
     
     // Main center puff
     const mainPuff = new THREE.Mesh(new THREE.SphereGeometry(2.5, 16, 12), foliageMat);
@@ -511,15 +511,15 @@ export class Terrain {
   }
 
   private createLake(): void {
-    // Cute cartoon water - bright pastel blue
+    // GLOSSY bright cyan water - Fall Guys style!
     const water = new THREE.Mesh(
       new THREE.CircleGeometry(30, 32),
       new THREE.MeshStandardMaterial({ 
-        color: 0x87CEEB, 
-        metalness: 0, 
-        roughness: 0.85, 
+        color: 0x44DDFF, 
+        metalness: 0.1, 
+        roughness: 0.2, 
         transparent: true, 
-        opacity: 0.85 
+        opacity: 0.9 
       })
     );
     water.rotation.x = -Math.PI / 2;
@@ -527,14 +527,15 @@ export class Terrain {
     this.scene.add(water);
     
     // Cute colorful rocks around the lake
-    const rockColors = [0xFFB6C1, 0xDDA0DD, 0xE6E6FA, 0xB0E0E6];
+    // GLOSSY candy rocks - vibrant colors!
+    const rockColors = [0xFF77AA, 0xDD66FF, 0xAA88FF, 0x66CCFF];
     for (let i = 0; i < 15; i++) {
       const angle = Math.random() * Math.PI * 2;
       const dist = 28 + Math.random() * 5;
       const rockColor = rockColors[i % rockColors.length];
       const rock = new THREE.Mesh(
         new THREE.SphereGeometry(0.5 + Math.random(), 8, 6),
-        new THREE.MeshStandardMaterial({ color: rockColor, roughness: 1, metalness: 0 })
+        new THREE.MeshStandardMaterial({ color: rockColor, roughness: 0.4, metalness: 0.1 })
       );
       rock.scale.set(1, 0.6, 1);
       rock.position.set(-80 + Math.cos(angle) * dist, this.getHeightAt(-80 + Math.cos(angle) * dist, 80 + Math.sin(angle) * dist) + 0.3, 80 + Math.sin(angle) * dist);
@@ -544,13 +545,13 @@ export class Terrain {
   }
 
   private createRiver(): void {
-    // Cartoon bright water
+    // GLOSSY bright cyan river - Fall Guys style!
     const waterMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x7EC8E3, 
-      metalness: 0, 
-      roughness: 0.85, 
+      color: 0x44DDFF, 
+      metalness: 0.1, 
+      roughness: 0.2, 
       transparent: true, 
-      opacity: 0.85 
+      opacity: 0.9 
     });
 
     // Create winding river using multiple segments

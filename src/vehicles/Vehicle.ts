@@ -102,15 +102,15 @@ export class Vehicle {
   }
 
   private createCarMesh(group: THREE.Group): THREE.Group {
-    // Cute cartoon car - using palette colors!
-    const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0xE76F51, roughness: 0.9, metalness: 0 });
-    const wheelMaterial = new THREE.MeshStandardMaterial({ color: 0x5C5C68, roughness: 0.9, metalness: 0 });
+    // GLOSSY candy car - Fall Guys style!
+    const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0xFF6655, roughness: 0.35, metalness: 0.1 });
+    const wheelMaterial = new THREE.MeshStandardMaterial({ color: 0x6A6A7A, roughness: 0.5, metalness: 0 });
     const glassMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0xCFE9FF, 
+      color: 0x88DDFF, 
       transparent: true, 
       opacity: 0.7,
-      roughness: 0.85,
-      metalness: 0
+      roughness: 0.2,
+      metalness: 0.1
     });
 
     // Chunky rounded body
@@ -122,7 +122,7 @@ export class Vehicle {
     // Cute bubble cabin - rounded
     const cabinGeo = new THREE.SphereGeometry(1.4, 12, 10);
     cabinGeo.scale(1.4, 0.8, 1.2);
-    const cabin = new THREE.Mesh(cabinGeo, new THREE.MeshStandardMaterial({ color: 0xF4A261, roughness: 0.9, metalness: 0 }));
+    const cabin = new THREE.Mesh(cabinGeo, new THREE.MeshStandardMaterial({ color: 0xFFAA55, roughness: 0.35, metalness: 0.1 }));
     cabin.position.set(0, 1.9, -0.3);
     cabin.castShadow = true;
     group.add(cabin);
@@ -135,7 +135,7 @@ export class Vehicle {
 
     // Big chunky wheels with cute hubcaps
     const wheelGeo = new THREE.CylinderGeometry(0.55, 0.55, 0.4, 16);
-    const hubCapMaterial = new THREE.MeshStandardMaterial({ color: 0xFFD166, roughness: 0.9, metalness: 0 });
+    const hubCapMaterial = new THREE.MeshStandardMaterial({ color: 0xFFDD44, roughness: 0.3, metalness: 0.1 });
     const wheelPositions = [
       { x: 1.4, z: 1.6 }, { x: -1.4, z: 1.6 },
       { x: 1.4, z: -1.6 }, { x: -1.4, z: -1.6 }
@@ -168,14 +168,14 @@ export class Vehicle {
   }
 
   private createHelicopterMesh(group: THREE.Group): THREE.Group {
-    // Cute cartoon helicopter!
-    const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0xB7D3A8, roughness: 0.9, metalness: 0 });
+    // GLOSSY candy helicopter - Fall Guys style!
+    const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0x77DD88, roughness: 0.35, metalness: 0.1 });
     const glassMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0xCFE9FF, 
+      color: 0x88DDFF, 
       transparent: true, 
       opacity: 0.7,
-      roughness: 0.85,
-      metalness: 0
+      roughness: 0.2,
+      metalness: 0.1
     });
 
     // Chunky round body
@@ -201,25 +201,25 @@ export class Vehicle {
     tail.castShadow = true;
     group.add(tail);
 
-    // Cute tail fin - using character color
+    // Cute tail fin - glossy candy style
     const fin = new THREE.Mesh(
       new THREE.BoxGeometry(1.4, 1.6, 0.2),
-      new THREE.MeshStandardMaterial({ color: 0xF4A261, roughness: 0.9, metalness: 0 })
+      new THREE.MeshStandardMaterial({ color: 0xFFAA55, roughness: 0.35, metalness: 0.1 })
     );
     fin.position.set(-5, 2, 0);
     group.add(fin);
 
-    // Main rotor - accent color
+    // Main rotor - glossy accent
     const rotorHub = new THREE.Mesh(
       new THREE.CylinderGeometry(0.25, 0.25, 0.5, 8),
-      new THREE.MeshStandardMaterial({ color: 0xE76F51, roughness: 0.9, metalness: 0 })
+      new THREE.MeshStandardMaterial({ color: 0xFF5544, roughness: 0.35, metalness: 0.1 })
     );
     rotorHub.position.y = 2.8;
     group.add(rotorHub);
 
     const rotor = new THREE.Mesh(
       new THREE.BoxGeometry(10, 0.12, 0.5),
-      new THREE.MeshStandardMaterial({ color: 0xFFD166, roughness: 0.9, metalness: 0 })
+      new THREE.MeshStandardMaterial({ color: 0xFFDD44, roughness: 0.35, metalness: 0.1 })
     );
     rotor.position.y = 3;
     rotor.name = 'mainRotor';
@@ -228,23 +228,23 @@ export class Vehicle {
     // Second blade
     const rotor2 = new THREE.Mesh(
       new THREE.BoxGeometry(10, 0.12, 0.5),
-      new THREE.MeshStandardMaterial({ color: 0xFFD166, roughness: 0.9, metalness: 0 })
+      new THREE.MeshStandardMaterial({ color: 0xFFDD44, roughness: 0.35, metalness: 0.1 })
     );
     rotor2.rotation.y = Math.PI / 2;
     rotor.add(rotor2);
 
-    // Tail rotor - character color
+    // Tail rotor - glossy
     const tailRotor = new THREE.Mesh(
       new THREE.BoxGeometry(1.6, 0.08, 0.2),
-      new THREE.MeshStandardMaterial({ color: 0xF4A261, roughness: 0.9, metalness: 0 })
+      new THREE.MeshStandardMaterial({ color: 0xFFAA55, roughness: 0.35, metalness: 0.1 })
     );
     tailRotor.position.set(-5.2, 2, 0.3);
     tailRotor.rotation.x = Math.PI / 2;
     tailRotor.name = 'tailRotor';
     group.add(tailRotor);
 
-    // Cute landing skids - soft gray-blue
-    const skidMaterial = new THREE.MeshStandardMaterial({ color: 0x7A8A9A, roughness: 0.9, metalness: 0 });
+    // Cute landing skids - glossy gray
+    const skidMaterial = new THREE.MeshStandardMaterial({ color: 0x8899AA, roughness: 0.4, metalness: 0.1 });
     [-1, 1].forEach(side => {
       const skid = new THREE.Mesh(new THREE.CapsuleGeometry(0.12, 2.5, 6, 8), skidMaterial);
       skid.rotation.z = Math.PI / 2;

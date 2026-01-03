@@ -62,15 +62,15 @@ export class Enemy {
       return this.createBossMesh(config);
     }
     
-    // Cartoon toon-shaded materials
+    // GLOSSY candy-style materials - Fall Guys look!
     const bodyMaterial = new THREE.MeshStandardMaterial({ 
       color: config.color, 
-      roughness: 0.9,
-      metalness: 0
+      roughness: 0.35,
+      metalness: 0.1
     });
     const skinMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0xFAE5D3, // Warm skin tone (no pure white)
-      roughness: 0.9,
+      color: 0xFFDDCC, // Warm peachy skin
+      roughness: 0.4,
       metalness: 0
     });
 

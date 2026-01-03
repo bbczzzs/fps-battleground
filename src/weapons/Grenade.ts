@@ -35,22 +35,40 @@ export class Grenade {
   }
 
   private createGrenadeMesh(): THREE.Mesh {
-    const geometry = new THREE.SphereGeometry(0.15, 12, 12);
+    // Cute cartoon bomb - like a cherry bomb!
+    const geometry = new THREE.SphereGeometry(0.18, 16, 12);
     const material = new THREE.MeshStandardMaterial({
-      color: 0x2a4a2a,
-      metalness: 0.7,
-      roughness: 0.3
+      color: 0xFF6B6B,  // Bright red
+      metalness: 0,
+      roughness: 0.9
     });
 
     const grenade = new THREE.Mesh(geometry, material);
     grenade.castShadow = true;
 
-    // Add details
-    const pinGeometry = new THREE.CylinderGeometry(0.02, 0.02, 0.05);
-    const pinMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-    const pin = new THREE.Mesh(pinGeometry, pinMaterial);
-    pin.position.y = 0.15;
-    grenade.add(pin);
+    // Add cute fuse/sparkle on top
+    const fuseGeometry = new THREE.CylinderGeometry(0.025, 0.025, 0.12, 8);
+    const fuseMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0xFFE66D,  // Yellow fuse
+      roughness: 0.9,
+      metalness: 0
+    });
+    const fuse = new THREE.Mesh(fuseGeometry, fuseMaterial);
+    fuse.position.y = 0.2;
+    grenade.add(fuse);
+    
+    // Sparkle tip
+    const sparkleGeometry = new THREE.SphereGeometry(0.04, 8, 6);
+    const sparkleMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0xFFFFFF,
+      emissive: 0xFFE66D,
+      emissiveIntensity: 0.5,
+      roughness: 0.8,
+      metalness: 0
+    });
+    const sparkle = new THREE.Mesh(sparkleGeometry, sparkleMaterial);
+    sparkle.position.y = 0.26;
+    grenade.add(sparkle);
 
     return grenade;
   }

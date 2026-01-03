@@ -116,46 +116,64 @@ export class Weapon {
   private createWeaponMesh(): THREE.Group {
     const group = new THREE.Group();
 
-    // Gun body
-    const bodyGeometry = new THREE.BoxGeometry(0.08, 0.12, 0.5);
+    // Cartoon toy gun - bright and chunky!
+    // Gun body - rounded colorful
+    const bodyGeometry = new THREE.BoxGeometry(0.12, 0.15, 0.5);
     const bodyMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x333333,
-      roughness: 0.3,
-      metalness: 0.8
+      color: 0xFF6B6B,  // Bright coral red
+      roughness: 0.9,
+      metalness: 0
     });
     const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
     group.add(body);
 
-    // Barrel
-    const barrelGeometry = new THREE.CylinderGeometry(0.02, 0.025, 0.3, 8);
+    // Chunky barrel - bright orange
+    const barrelGeometry = new THREE.CylinderGeometry(0.04, 0.05, 0.35, 12);
     const barrelMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x222222,
-      roughness: 0.2,
-      metalness: 0.9
+      color: 0xFFB347,  // Pastel orange
+      roughness: 0.9,
+      metalness: 0
     });
     const barrel = new THREE.Mesh(barrelGeometry, barrelMaterial);
     barrel.rotation.x = Math.PI / 2;
-    barrel.position.z = -0.35;
+    barrel.position.z = -0.4;
     barrel.position.y = 0.02;
     group.add(barrel);
 
-    // Handle
-    const handleGeometry = new THREE.BoxGeometry(0.06, 0.15, 0.08);
+    // Orange tip (toy gun style)
+    const tipGeometry = new THREE.SphereGeometry(0.045, 12, 8);
+    const tipMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0xFFA500,
+      roughness: 0.9,
+      metalness: 0
+    });
+    const tip = new THREE.Mesh(tipGeometry, tipMaterial);
+    tip.position.z = -0.58;
+    tip.position.y = 0.02;
+    group.add(tip);
+
+    // Handle - cute purple
+    const handleGeometry = new THREE.BoxGeometry(0.08, 0.18, 0.1);
     const handleMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x4a3728,
-      roughness: 0.8
+      color: 0x9B59B6,  // Purple
+      roughness: 0.9,
+      metalness: 0
     });
     const handle = new THREE.Mesh(handleGeometry, handleMaterial);
-    handle.position.y = -0.12;
+    handle.position.y = -0.14;
     handle.position.z = 0.1;
     handle.rotation.x = -0.2;
     group.add(handle);
 
-    // Sight
-    const sightGeometry = new THREE.BoxGeometry(0.02, 0.04, 0.02);
-    const sightMaterial = new THREE.MeshStandardMaterial({ color: 0x111111 });
+    // Cute round sight - yellow
+    const sightGeometry = new THREE.SphereGeometry(0.025, 8, 6);
+    const sightMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0xFFE66D,  // Bright yellow
+      roughness: 0.9,
+      metalness: 0
+    });
     const sight = new THREE.Mesh(sightGeometry, sightMaterial);
-    sight.position.y = 0.08;
+    sight.position.y = 0.1;
     sight.position.z = -0.15;
     group.add(sight);
 

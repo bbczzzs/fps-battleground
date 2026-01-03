@@ -41,6 +41,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // Start game function
   const startGame = (isMultiplayer: boolean = false) => {
     if (landingPage) {
+      // Request pointer lock immediately on click (before setTimeout)
+      if (!isMobile) {
+        document.body.requestPointerLock();
+      }
+      
       landingPage.style.transition = 'opacity 0.5s ease';
       landingPage.style.opacity = '0';
       setTimeout(() => {

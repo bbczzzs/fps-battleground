@@ -17,24 +17,30 @@ export class Projectile {
     this.scene = scene;
     this.velocity = direction.normalize().multiplyScalar(speed);
 
-    // Create bullet mesh
-    const geometry = new THREE.SphereGeometry(0.05, 8, 8);
-    const material = new THREE.MeshBasicMaterial({ 
-      color: 0xffff00
+    // Cute cartoon bullet - big and colorful!
+    const geometry = new THREE.SphereGeometry(0.15, 12, 8);
+    const material = new THREE.MeshStandardMaterial({ 
+      color: 0xFFE66D,  // Bright yellow
+      roughness: 0.8,
+      metalness: 0,
+      emissive: 0xFFE66D,
+      emissiveIntensity: 0.3
     });
     this.mesh = new THREE.Mesh(geometry, material);
     this.mesh.position.copy(position);
     
-    // Add trail effect
-    const trailGeometry = new THREE.CylinderGeometry(0.02, 0.02, 0.3, 4);
-    const trailMaterial = new THREE.MeshBasicMaterial({ 
-      color: 0xffaa00,
+    // Cute sparkle trail
+    const trailGeometry = new THREE.ConeGeometry(0.1, 0.4, 6);
+    const trailMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0xFF6B6B,
+      roughness: 0.9,
+      metalness: 0,
       transparent: true,
-      opacity: 0.5
+      opacity: 0.7
     });
     const trail = new THREE.Mesh(trailGeometry, trailMaterial);
-    trail.rotation.x = Math.PI / 2;
-    trail.position.z = -0.15;
+    trail.rotation.x = -Math.PI / 2;
+    trail.position.z = 0.25;
     this.mesh.add(trail);
 
     // Orient bullet in direction of travel

@@ -2,6 +2,9 @@ import * as THREE from 'three';
 
 export type EnemyType = 'rifle' | 'smg' | 'heavy' | 'boss';
 
+// Pastel cartoon colors
+const PASTEL_COLORS = [0xFF9AA2, 0xFFB7B2, 0xFFDAC1, 0xE2F0CB, 0xB5EAD7, 0xC7CEEA, 0xF0E6EF];
+
 interface EnemyConfig {
   health: number;
   speed: number;
@@ -12,10 +15,10 @@ interface EnemyConfig {
 }
 
 const ENEMY_CONFIGS: Record<EnemyType, EnemyConfig> = {
-  rifle: { health: 80, speed: 2.5, damage: 15, attackRate: 0.8, color: 0x4a5568, scale: 1 },
-  smg: { health: 60, speed: 5, damage: 8, attackRate: 2, color: 0x744210, scale: 0.9 },
-  heavy: { health: 200, speed: 1.5, damage: 25, attackRate: 0.5, color: 0x1a202c, scale: 1.3 },
-  boss: { health: 1000, speed: 3, damage: 40, attackRate: 1.5, color: 0xff0000, scale: 2.5 }
+  rifle: { health: 80, speed: 2.5, damage: 15, attackRate: 0.8, color: 0xFF9AA2, scale: 1 },
+  smg: { health: 60, speed: 5, damage: 8, attackRate: 2, color: 0xB5EAD7, scale: 0.9 },
+  heavy: { health: 200, speed: 1.5, damage: 25, attackRate: 0.5, color: 0xC7CEEA, scale: 1.3 },
+  boss: { health: 1000, speed: 3, damage: 40, attackRate: 1.5, color: 0xFFB347, scale: 2.5 }
 };
 
 export class Enemy {
@@ -62,90 +65,130 @@ export class Enemy {
       return this.createBossMesh(config);
     }
     
-    const bodyMaterial = new THREE.MeshStandardMaterial({ color: config.color, roughness: 0.7 });
-    const skinMaterial = new THREE.MeshStandardMaterial({ color: 0xd4a574, roughness: 0.6 });
+    // Cartoon toon-shaded materials
+    const bodyMaterial = new THREE.MeshStandardMaterial({ 
+      color: config.color, 
+      roughness: 0.9,
+      metalness: 0
+    });
+    const skinMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0xFFE4C4, // Bisque - cartoon skin
+      roughness: 0.9,
+      metalness: 0
+    });
 
-    // Torso
-    const torso = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.8, 0.4), bodyMaterial);
-    torso.position.y = 1.2;
-    torso.castShadow = true;
-    torso.name = 'torso';
-    group.add(torso);
+    // CHIBI STYLE: Big round body
+    const body = new THREE.Mesh(
+      new THREE.SphereGeometry(0.5, 16, 16),
+      bodyMaterial
+    );
+    body.position.y = 0.8;
+    body.scale.set(1, 1.2, 0.9);
+    body.castShadow = true;
+    body.name = 'torso';
+    group.add(body);
 
-    // Head
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 12), skinMaterial);
-    head.position.y = 1.85;
+    // CHIBI: Very big head (50% of body)
+    const head = new THREE.Mesh(
+      new THREE.SphereGeometry(0.45, 16, 16), 
+      skinMaterial
+    );
+    head.position.y = 1.7;
     head.castShadow = true;
     head.name = 'head';
     group.add(head);
 
-    // Helmet
-    const helmet = new THREE.Mesh(
-      new THREE.SphereGeometry(0.25, 12, 12, 0, Math.PI * 2, 0, Math.PI / 2),
-      new THREE.MeshStandardMaterial({ color: 0x2d3748, roughness: 0.5 })
-    );
-    helmet.position.y = 1.9;
-    helmet.castShadow = true;
-    group.add(helmet);
-
-    // Eyes (glowing red)
-    const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-    [-0.08, 0.08].forEach(x => {
-      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 8), eyeMaterial);
-      eye.position.set(x, 1.88, 0.18);
-      group.add(eye);
+    // Cute blush cheeks
+    const blushMat = new THREE.MeshStandardMaterial({ color: 0xFFB6C1, roughness: 1, metalness: 0 });
+    [-0.25, 0.25].forEach(x => {
+      const blush = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), blushMat);
+      blush.position.set(x, 1.6, 0.35);
+      blush.scale.set(1.2, 0.8, 0.5);
+      group.add(blush);
     });
 
-    // Arms
-    const armGeo = new THREE.CapsuleGeometry(0.1, 0.5, 4, 8);
+    // Big cartoon eyes
+    const eyeWhite = new THREE.MeshStandardMaterial({ color: 0xFFFFFF, roughness: 0.5, metalness: 0 });
+    const eyePupil = new THREE.MeshBasicMaterial({ color: 0x2C2C2C });
+    [-0.15, 0.15].forEach(x => {
+      const white = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 12), eyeWhite);
+      white.position.set(x, 1.75, 0.35);
+      white.scale.z = 0.5;
+      group.add(white);
+      
+      const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), eyePupil);
+      pupil.position.set(x, 1.75, 0.42);
+      group.add(pupil);
+      
+      // Eye shine
+      const shine = new THREE.Mesh(
+        new THREE.SphereGeometry(0.025, 6, 6),
+        new THREE.MeshBasicMaterial({ color: 0xFFFFFF })
+      );
+      shine.position.set(x + 0.03, 1.78, 0.44);
+      group.add(shine);
+    });
+
+    // Cute smile
+    const smileMat = new THREE.MeshBasicMaterial({ color: 0x2C2C2C });
+    const smile = new THREE.Mesh(
+      new THREE.TorusGeometry(0.08, 0.02, 8, 16, Math.PI),
+      smileMat
+    );
+    smile.position.set(0, 1.55, 0.4);
+    smile.rotation.x = Math.PI;
+    group.add(smile);
+
+    // Stubby cartoon arms
+    const armGeo = new THREE.CapsuleGeometry(0.12, 0.25, 8, 8);
     const leftArm = new THREE.Mesh(armGeo, bodyMaterial);
-    leftArm.position.set(-0.45, 1.1, 0);
-    leftArm.rotation.z = 0.2;
+    leftArm.position.set(-0.55, 0.85, 0);
+    leftArm.rotation.z = 0.5;
     leftArm.castShadow = true;
     leftArm.name = 'leftArm';
     group.add(leftArm);
 
     const rightArm = new THREE.Mesh(armGeo, bodyMaterial);
-    rightArm.position.set(0.45, 1.1, 0);
-    rightArm.rotation.z = -0.2;
+    rightArm.position.set(0.55, 0.85, 0);
+    rightArm.rotation.z = -0.5;
     rightArm.castShadow = true;
     rightArm.name = 'rightArm';
     group.add(rightArm);
 
-    // Legs
-    const legGeo = new THREE.CapsuleGeometry(0.12, 0.6, 4, 8);
+    // Stubby cartoon legs
+    const legGeo = new THREE.CapsuleGeometry(0.14, 0.2, 8, 8);
     const leftLeg = new THREE.Mesh(legGeo, bodyMaterial);
-    leftLeg.position.set(-0.18, 0.4, 0);
+    leftLeg.position.set(-0.2, 0.2, 0);
     leftLeg.castShadow = true;
     leftLeg.name = 'leftLeg';
     group.add(leftLeg);
 
     const rightLeg = new THREE.Mesh(legGeo, bodyMaterial);
-    rightLeg.position.set(0.18, 0.4, 0);
+    rightLeg.position.set(0.2, 0.2, 0);
     rightLeg.castShadow = true;
     rightLeg.name = 'rightLeg';
     group.add(rightLeg);
 
-    // Weapon
+    // Toy weapon (colorful)
     const weapon = this.createWeaponMesh();
-    weapon.position.set(0.5, 1.1, 0.3);
+    weapon.position.set(0.5, 0.9, 0.3);
     weapon.name = 'weapon';
     group.add(weapon);
 
-    // Health bar
+    // Health bar with rounded look
     const healthBarBg = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.8, 0.08),
-      new THREE.MeshBasicMaterial({ color: 0x333333 })
+      new THREE.PlaneGeometry(0.8, 0.12),
+      new THREE.MeshBasicMaterial({ color: 0xE0E0E0 })
     );
-    healthBarBg.position.y = 2.3;
+    healthBarBg.position.y = 2.4;
     healthBarBg.name = 'healthBarBg';
     group.add(healthBarBg);
 
     const healthBarFill = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.8, 0.08),
-      new THREE.MeshBasicMaterial({ color: 0x00ff00 })
+      new THREE.PlaneGeometry(0.75, 0.08),
+      new THREE.MeshBasicMaterial({ color: 0x90EE90 }) // Light green
     );
-    healthBarFill.position.y = 2.3;
+    healthBarFill.position.y = 2.4;
     healthBarFill.position.z = 0.01;
     healthBarFill.name = 'healthBarFill';
     group.add(healthBarFill);

@@ -1,12 +1,29 @@
 import * as THREE from 'three';
 
+// Pastel cartoon color palette
+const PASTEL = {
+  grass: 0x98D982,      // Soft green
+  grassAlt: 0xB8E986,   // Light lime
+  path: 0xF5DEB3,       // Wheat
+  water: 0x87CEEB,      // Sky blue
+  sand: 0xFFE4B5,       // Moccasin
+  rock: 0xD3D3D3,       // Light gray
+  wood: 0xDEB887,       // Burlywood
+  leaf: 0x90EE90,       // Light green
+  flower1: 0xFFB6C1,    // Light pink
+  flower2: 0xDDA0DD,    // Plum
+  flower3: 0xFFE066,    // Light yellow
+  building: 0xFFDAB9,   // Peach puff
+  roof: 0xFF9AA2,       // Pastel red
+};
+
 export class Terrain {
   private scene: THREE.Scene;
   private ground!: THREE.Mesh;
   private colliders: THREE.Box3[] = [];
   private heightData: number[][] = [];
   private terrainSize = 400;
-  private segments = 150;
+  private segments = 100; // Smoother with less segments
 
   constructor(scene: THREE.Scene) {
     this.scene = scene;
@@ -89,10 +106,12 @@ export class Terrain {
     
     geometry.computeVertexNormals();
 
+    // Soft cartoon grass material
     const material = new THREE.MeshStandardMaterial({
-      color: 0x4a6741,
-      roughness: 0.95,
-      metalness: 0.0
+      color: PASTEL.grass,
+      roughness: 1.0,
+      metalness: 0,
+      flatShading: false
     });
 
     this.ground = new THREE.Mesh(geometry, material);
@@ -104,21 +123,66 @@ export class Terrain {
   }
   
   private addGroundDetails(): void {
-    const dirtMaterial = new THREE.MeshStandardMaterial({
-      color: 0x5c4a3d,
-      roughness: 1
+    // Soft grass patches
+    const grassMaterial = new THREE.MeshStandardMaterial({
+      color: PASTEL.grassAlt,
+      roughness: 1,
+      metalness: 0
     });
     
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 50; i++) {
       const patch = new THREE.Mesh(
-        new THREE.CircleGeometry(3 + Math.random() * 8, 8),
-        dirtMaterial
+        new THREE.CircleGeometry(4 + Math.random() * 10, 16),
+        grassMaterial
       );
       patch.rotation.x = -Math.PI / 2;
       const x = (Math.random() - 0.5) * 300;
       const z = (Math.random() - 0.5) * 300;
       patch.position.set(x, this.getHeightAt(x, z) + 0.02, z);
       this.scene.add(patch);
+    }
+    
+    // Add flowers scattered around
+    this.addFlowers();
+  }
+  
+  private addFlowers(): void {
+    const flowerColors = [PASTEL.flower1, PASTEL.flower2, PASTEL.flower3];
+    
+    for (let i = 0; i < 100; i++) {
+      const flower = new THREE.Group();
+      const color = flowerColors[Math.floor(Math.random() * flowerColors.length)];
+      
+      // Stem
+      const stem = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.03, 0.03, 0.3, 6),
+        new THREE.MeshStandardMaterial({ color: 0x228B22, roughness: 1, metalness: 0 })
+      );
+      stem.position.y = 0.15;
+      flower.add(stem);
+      
+      // Petals (simple sphere)
+      const petal = new THREE.Mesh(
+        new THREE.SphereGeometry(0.12, 8, 8),
+        new THREE.MeshStandardMaterial({ color, roughness: 0.9, metalness: 0 })
+      );
+      petal.position.y = 0.35;
+      petal.scale.y = 0.6;
+      flower.add(petal);
+      
+      // Center
+      const center = new THREE.Mesh(
+        new THREE.SphereGeometry(0.05, 6, 6),
+        new THREE.MeshStandardMaterial({ color: 0xFFFF00, roughness: 0.8, metalness: 0 })
+      );
+      center.position.y = 0.38;
+      flower.add(center);
+      
+      const x = (Math.random() - 0.5) * 350;
+      const z = (Math.random() - 0.5) * 350;
+      flower.position.set(x, this.getHeightAt(x, z), z);
+      flower.scale.setScalar(0.8 + Math.random() * 0.6);
+      this.scene.add(flower);
     }
   }
 
@@ -182,21 +246,46 @@ export class Terrain {
   private createBuilding(x: number, z: number, w: number, h: number, d: number, color: number): void {
     const groundY = this.getHeightAt(x, z);
     const group = new THREE.Group();
-    const wall = new THREE.MeshStandardMaterial({ color, roughness: 0.9 });
+    
+    // Cartoon pastel building colors
+    const cartoonColors = [0xFFB6C1, 0xDDA0DD, 0xB0E0E6, 0x98FB98, 0xFFDAB9, 0xE6E6FA, 0xFFFACD];
+    const buildingColor = cartoonColors[Math.floor(Math.random() * cartoonColors.length)];
+    
+    const wall = new THREE.MeshStandardMaterial({ color: buildingColor, roughness: 1, metalness: 0 });
     const building = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), wall);
     building.position.y = h / 2;
     building.castShadow = true;
     group.add(building);
     
-    const roof = new THREE.Mesh(new THREE.BoxGeometry(w + 0.5, 0.3, d + 0.5), new THREE.MeshStandardMaterial({ color: 0x3a3a3a }));
-    roof.position.y = h + 0.15;
+    // Cute colorful roof
+    const roofColors = [0xFF6B6B, 0x4ECDC4, 0xFFE66D, 0x95E1D3];
+    const roofColor = roofColors[Math.floor(Math.random() * roofColors.length)];
+    const roof = new THREE.Mesh(
+      new THREE.ConeGeometry(Math.max(w, d) * 0.8, h * 0.4, 4),
+      new THREE.MeshStandardMaterial({ color: roofColor, roughness: 1, metalness: 0 })
+    );
+    roof.position.y = h + h * 0.2;
+    roof.rotation.y = Math.PI / 4;
+    roof.castShadow = true;
     group.add(roof);
     
+    // Cute round windows
     for (let i = 0; i < Math.floor(w / 4); i++) {
-      const window = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 2), new THREE.MeshBasicMaterial({ color: 0x1a3a5a }));
-      window.position.set(-w/2 + 2 + i * 4, h/2, d/2 + 0.01);
-      group.add(window);
+      const windowFrame = new THREE.Mesh(
+        new THREE.CircleGeometry(0.8, 16),
+        new THREE.MeshBasicMaterial({ color: 0x87CEEB })
+      );
+      windowFrame.position.set(-w/2 + 2 + i * 4, h/2, d/2 + 0.05);
+      group.add(windowFrame);
     }
+    
+    // Add cute door
+    const door = new THREE.Mesh(
+      new THREE.PlaneGeometry(2, 3),
+      new THREE.MeshStandardMaterial({ color: 0x8B4513, roughness: 1, metalness: 0 })
+    );
+    door.position.set(0, 1.5, d/2 + 0.05);
+    group.add(door);
     
     group.position.set(x, groundY, z);
     this.scene.add(group);
@@ -210,18 +299,36 @@ export class Terrain {
   private createGuardTower(x: number, z: number): void {
     const groundY = this.getHeightAt(x, z);
     const group = new THREE.Group();
-    const metal = new THREE.MeshStandardMaterial({ color: 0x4a4a4a });
     
+    // Cute wooden lookout tower
+    const wood = new THREE.MeshStandardMaterial({ color: 0xDEB887, roughness: 1, metalness: 0 });
+    
+    // Chunky wooden legs
     [[-1.5, -1.5], [1.5, -1.5], [-1.5, 1.5], [1.5, 1.5]].forEach(([lx, lz]) => {
-      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.3, 8, 6), metal);
+      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.5, 8, 8), wood);
       leg.position.set(lx, 4, lz);
       leg.castShadow = true;
       group.add(leg);
     });
     
-    const platform = new THREE.Mesh(new THREE.BoxGeometry(5, 0.3, 5), metal);
+    // Cute platform
+    const platform = new THREE.Mesh(
+      new THREE.BoxGeometry(5, 0.5, 5),
+      new THREE.MeshStandardMaterial({ color: 0xF5DEB3, roughness: 1, metalness: 0 })
+    );
     platform.position.y = 8;
+    platform.castShadow = true;
     group.add(platform);
+    
+    // Little roof
+    const roof = new THREE.Mesh(
+      new THREE.ConeGeometry(4, 2, 4),
+      new THREE.MeshStandardMaterial({ color: 0xFF7F50, roughness: 1, metalness: 0 })
+    );
+    roof.position.y = 10;
+    roof.rotation.y = Math.PI / 4;
+    roof.castShadow = true;
+    group.add(roof);
     
     group.position.set(x, groundY, z);
     this.scene.add(group);
@@ -235,14 +342,21 @@ export class Terrain {
   private createSandbagWall(x: number, z: number, length: number): void {
     const groundY = this.getHeightAt(x, z);
     const group = new THREE.Group();
-    const bag = new THREE.MeshStandardMaterial({ color: 0x8b7355, roughness: 1 });
+    
+    // Cartoon puffy pillows instead of sandbags
+    const pillowColors = [0xFFB6C1, 0xE6E6FA, 0xB0E0E6, 0xF0E68C];
     
     for (let i = 0; i < length; i++) {
       for (let row = 0; row < 3; row++) {
-        const sandbag = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.35, 0.5), bag);
-        sandbag.position.set(i * 1.3 - length * 0.65, row * 0.35 + 0.175, 0);
-        sandbag.castShadow = true;
-        group.add(sandbag);
+        const pillowColor = pillowColors[(i + row) % pillowColors.length];
+        const pillow = new THREE.Mesh(
+          new THREE.SphereGeometry(0.6, 8, 6),
+          new THREE.MeshStandardMaterial({ color: pillowColor, roughness: 1, metalness: 0 })
+        );
+        pillow.scale.set(1.5, 0.8, 1);
+        pillow.position.set(i * 1.3 - length * 0.65, row * 0.5 + 0.3, 0);
+        pillow.castShadow = true;
+        group.add(pillow);
       }
     }
     
@@ -349,31 +463,75 @@ export class Terrain {
   
   private createTree(x: number, z: number): void {
     const group = new THREE.Group();
-    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.4, 4, 6), new THREE.MeshStandardMaterial({ color: 0x4a3728, roughness: 0.9 }));
-    trunk.position.y = 2;
+    
+    // Cartoon-style chunky trunk - warm brown
+    const trunk = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.5, 0.7, 3, 12),
+      new THREE.MeshStandardMaterial({ color: 0xA0522D, roughness: 1, metalness: 0 })
+    );
+    trunk.position.y = 1.5;
     trunk.castShadow = true;
     group.add(trunk);
     
-    const foliage = new THREE.Mesh(new THREE.ConeGeometry(3, 3, 6), new THREE.MeshStandardMaterial({ color: 0x1a4a1a, roughness: 0.8 }));
-    foliage.position.y = 4;
-    foliage.castShadow = true;
-    group.add(foliage);
+    // Puffy cartoon foliage - multiple spheres for cotton-candy look
+    const foliageColors = [0x90EE90, 0x98FB98, 0x7CFC00, 0x32CD32];
+    const foliageColor = foliageColors[Math.floor(Math.random() * foliageColors.length)];
+    const foliageMat = new THREE.MeshStandardMaterial({ color: foliageColor, roughness: 1, metalness: 0 });
+    
+    // Main center puff
+    const mainPuff = new THREE.Mesh(new THREE.SphereGeometry(2.5, 16, 12), foliageMat);
+    mainPuff.position.y = 5;
+    mainPuff.castShadow = true;
+    group.add(mainPuff);
+    
+    // Surrounding smaller puffs for cloud-like tree top
+    const puffPositions = [
+      { x: 1.5, y: 4.5, z: 0.5, s: 1.5 },
+      { x: -1.5, y: 4.8, z: 0, s: 1.4 },
+      { x: 0.5, y: 4, z: 1.5, s: 1.3 },
+      { x: -0.5, y: 4.2, z: -1.5, s: 1.4 },
+      { x: 0, y: 6.2, z: 0, s: 1.2 }
+    ];
+    
+    puffPositions.forEach(p => {
+      const puff = new THREE.Mesh(new THREE.SphereGeometry(p.s, 12, 8), foliageMat);
+      puff.position.set(p.x, p.y, p.z);
+      puff.castShadow = true;
+      group.add(puff);
+    });
     
     group.position.set(x, this.getHeightAt(x, z), z);
-    group.scale.setScalar(0.7 + Math.random() * 0.6);
+    group.scale.setScalar(0.6 + Math.random() * 0.5);
     this.scene.add(group);
   }
 
   private createLake(): void {
-    const water = new THREE.Mesh(new THREE.CircleGeometry(30, 32), new THREE.MeshStandardMaterial({ color: 0x1a4a6a, metalness: 0.8, roughness: 0.2, transparent: true, opacity: 0.85 }));
+    // Cute cartoon water - bright pastel blue
+    const water = new THREE.Mesh(
+      new THREE.CircleGeometry(30, 32),
+      new THREE.MeshStandardMaterial({ 
+        color: 0x87CEEB, 
+        metalness: 0.2, 
+        roughness: 0.3, 
+        transparent: true, 
+        opacity: 0.9 
+      })
+    );
     water.rotation.x = -Math.PI / 2;
     water.position.set(-80, -1.5, 80);
     this.scene.add(water);
     
+    // Cute colorful rocks around the lake
+    const rockColors = [0xFFB6C1, 0xDDA0DD, 0xE6E6FA, 0xB0E0E6];
     for (let i = 0; i < 15; i++) {
       const angle = Math.random() * Math.PI * 2;
       const dist = 28 + Math.random() * 5;
-      const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(0.5 + Math.random(), 0), new THREE.MeshStandardMaterial({ color: 0x5a5a5a, roughness: 0.9 }));
+      const rockColor = rockColors[i % rockColors.length];
+      const rock = new THREE.Mesh(
+        new THREE.SphereGeometry(0.5 + Math.random(), 8, 6),
+        new THREE.MeshStandardMaterial({ color: rockColor, roughness: 1, metalness: 0 })
+      );
+      rock.scale.set(1, 0.6, 1);
       rock.position.set(-80 + Math.cos(angle) * dist, this.getHeightAt(-80 + Math.cos(angle) * dist, 80 + Math.sin(angle) * dist) + 0.3, 80 + Math.sin(angle) * dist);
       rock.castShadow = true;
       this.scene.add(rock);
@@ -381,12 +539,13 @@ export class Terrain {
   }
 
   private createRiver(): void {
+    // Cartoon bright water
     const waterMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x2a6a9a, 
-      metalness: 0.9, 
-      roughness: 0.1, 
+      color: 0x7EC8E3, 
+      metalness: 0.1, 
+      roughness: 0.4, 
       transparent: true, 
-      opacity: 0.8 
+      opacity: 0.9 
     });
 
     // Create winding river using multiple segments

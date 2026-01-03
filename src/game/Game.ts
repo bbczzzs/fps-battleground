@@ -73,16 +73,17 @@ export class Game {
   constructor() {
     // Scene setup
     this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color(0xB0E0E6); // Pastel sky fallback
 
-    // Camera setup
+    // Camera setup - narrower FOV for cartoon feel
     this.camera = new THREE.PerspectiveCamera(
-      75,
+      55,
       window.innerWidth / window.innerHeight,
       0.1,
       1000
     );
 
-    // Renderer setup with optimizations
+    // Renderer setup - bright cartoon style
     this.renderer = new THREE.WebGLRenderer({ 
       antialias: true,
       powerPreference: 'high-performance'
@@ -92,7 +93,7 @@ export class Game {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 0.9;
+    this.renderer.toneMappingExposure = 1.3; // Brighter exposure
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     document.body.appendChild(this.renderer.domElement);
 
@@ -401,13 +402,18 @@ export class Game {
     this.isRunning = true;
     this.isMultiplayer = false;
     
-    // Lock pointer for FPS controls (desktop only)
+    // Setup pointer lock change listener (pointer lock already requested on click)
     if (!this.inputManager.isMobile) {
-      document.body.requestPointerLock();
-      
       document.addEventListener('pointerlockchange', () => {
         if (document.pointerLockElement !== document.body) {
           this.pause();
+        }
+      });
+      
+      // Re-lock on click if lost
+      document.addEventListener('click', () => {
+        if (!document.pointerLockElement && this.isRunning) {
+          document.body.requestPointerLock();
         }
       });
     }

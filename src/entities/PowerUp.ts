@@ -9,12 +9,13 @@ interface PowerUpConfig {
   description: string;
 }
 
+// Cute cartoon pastel colors for powerups
 const POWERUP_CONFIGS: Record<PowerUpType, PowerUpConfig> = {
-  health: { color: 0x00ff00, emissive: 0x00ff00, value: 50, description: '+50 Health' },
-  ammo: { color: 0xffaa00, emissive: 0xff8800, value: 60, description: '+60 Ammo' },
-  speed: { color: 0x00aaff, emissive: 0x0088ff, value: 5, description: 'Speed Boost' },
-  shield: { color: 0xaa00ff, emissive: 0x8800ff, value: 50, description: '+50 Shield' },
-  damage: { color: 0xff0000, emissive: 0xff0000, value: 2, description: '2x Damage' }
+  health: { color: 0xFF6B6B, emissive: 0xFF6B6B, value: 50, description: '+50 Health' },
+  ammo: { color: 0xFFE66D, emissive: 0xFFE66D, value: 60, description: '+60 Ammo' },
+  speed: { color: 0x4ECDC4, emissive: 0x4ECDC4, value: 5, description: 'Speed Boost' },
+  shield: { color: 0x9B59B6, emissive: 0x9B59B6, value: 50, description: '+50 Shield' },
+  damage: { color: 0xFF6B6B, emissive: 0xFF6B6B, value: 2, description: '2x Damage' }
 };
 
 export class PowerUp {
@@ -41,34 +42,34 @@ export class PowerUp {
     const group = new THREE.Group();
     const config = POWERUP_CONFIGS[this.type];
 
-    // Main core
-    const coreGeo = new THREE.OctahedronGeometry(0.4, 0);
+    // Cute cartoon star/candy shape
+    const coreGeo = new THREE.SphereGeometry(0.5, 12, 8);
     const coreMat = new THREE.MeshStandardMaterial({
       color: config.color,
       emissive: config.emissive,
-      emissiveIntensity: 0.8,
-      metalness: 0.8,
-      roughness: 0.2
+      emissiveIntensity: 0.4,
+      metalness: 0,
+      roughness: 0.8
     });
     const core = new THREE.Mesh(coreGeo, coreMat);
     core.castShadow = true;
     group.add(core);
 
-    // Outer ring
-    const ringGeo = new THREE.TorusGeometry(0.6, 0.08, 8, 32);
+    // Cute puffy ring
+    const ringGeo = new THREE.TorusGeometry(0.7, 0.12, 8, 24);
     const ringMat = new THREE.MeshStandardMaterial({
-      color: config.color,
+      color: 0xFFFFFF,
       emissive: config.emissive,
-      emissiveIntensity: 0.5,
-      metalness: 0.9,
-      roughness: 0.1
+      emissiveIntensity: 0.2,
+      metalness: 0,
+      roughness: 0.9
     });
     const ring = new THREE.Mesh(ringGeo, ringMat);
     ring.rotation.x = Math.PI / 2;
     group.add(ring);
 
-    // Add point light
-    const light = new THREE.PointLight(config.color, 2, 10);
+    // Add soft glow light
+    const light = new THREE.PointLight(config.color, 1.5, 8);
     light.castShadow = false;
     group.add(light);
 

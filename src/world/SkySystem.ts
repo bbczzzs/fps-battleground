@@ -55,10 +55,18 @@ export class SkySystem {
     glow.position.copy(pos);
     this.scene.add(glow);
 
-    // Warm directional light (off-white)
-    this.sun = new THREE.DirectionalLight(0xFFF8E8, 1.2);
+    // === BRIGHT LIGHTING SETUP - Scene must never appear dark ===
+    
+    // 1. Bright ambient light - ensures no dark areas
+    const ambient = new THREE.AmbientLight(0xFFF8F0, 1.0);
+    this.scene.add(ambient);
+
+    // 2. Warm directional sun light with soft shadows
+    this.sun = new THREE.DirectionalLight(0xFFF5E0, 0.8);
     this.sun.position.copy(pos);
     this.sun.castShadow = true;
+    
+    // Soft PCF shadow settings
     this.sun.shadow.mapSize.set(2048, 2048);
     this.sun.shadow.camera.near = 1;
     this.sun.shadow.camera.far = 400;
@@ -66,15 +74,10 @@ export class SkySystem {
     this.sun.shadow.camera.right = 150;
     this.sun.shadow.camera.top = 150;
     this.sun.shadow.camera.bottom = -150;
-    this.sun.shadow.bias = -0.001;
-    this.sun.shadow.radius = 4; // Soft shadow edges
+    this.sun.shadow.bias = -0.0005;
+    this.sun.shadow.normalBias = 0.02;
+    this.sun.shadow.radius = 8; // Very soft shadow edges
     this.scene.add(this.sun);
-
-    // Strong ambient for even lighting (soft off-white)
-    this.scene.add(new THREE.AmbientLight(0xFFF8F0, 0.7));
-    
-    // Hemisphere: sky color to ground color from palette
-    this.scene.add(new THREE.HemisphereLight(0xCFE9FF, 0xB7D3A8, 0.5));
   }
 
   private createClouds(): void {

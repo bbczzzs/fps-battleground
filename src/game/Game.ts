@@ -83,7 +83,7 @@ export class Game {
       1000
     );
 
-    // Renderer setup - bright cartoon style
+    // Renderer setup - bright cartoon style, never dark
     this.renderer = new THREE.WebGLRenderer({ 
       antialias: true,
       powerPreference: 'high-performance'
@@ -91,9 +91,9 @@ export class Game {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Soft PCF shadows
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.3; // Brighter exposure
+    this.renderer.toneMappingExposure = 1.5; // Extra bright exposure
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     document.body.appendChild(this.renderer.domElement);
 

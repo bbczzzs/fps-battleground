@@ -243,7 +243,7 @@ export class Terrain {
     }
   }
   
-  private createBuilding(x: number, z: number, w: number, h: number, d: number, color: number): void {
+  private createBuilding(x: number, z: number, w: number, h: number, d: number, _color: number): void {
     const groundY = this.getHeightAt(x, z);
     const group = new THREE.Group();
     

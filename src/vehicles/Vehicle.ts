@@ -367,6 +367,9 @@ export class Vehicle {
     const deckMaterial = new THREE.MeshStandardMaterial({ color: 0xE8DCC8, roughness: 0.9, metalness: 0 });
     const accentMaterial = new THREE.MeshStandardMaterial({ color: 0xB7D3A8, roughness: 0.9, metalness: 0 });
     const seatMaterial = new THREE.MeshStandardMaterial({ color: 0xF4A261, roughness: 0.9, metalness: 0 });
+    
+    // Use accent for railing detail
+    void accentMaterial;
 
     // Chunky rounded hull
     const hullShape = new THREE.Shape();

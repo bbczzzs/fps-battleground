@@ -2,9 +2,6 @@ import * as THREE from 'three';
 
 export type EnemyType = 'rifle' | 'smg' | 'heavy' | 'boss';
 
-// Character palette colors - no pure black or white
-const PASTEL_COLORS = [0xF4A261, 0xE9967A, 0xFFD166, 0xB7D3A8, 0xCFE9FF, 0xE76F51, 0xF5CEB3];
-
 interface EnemyConfig {
   health: number;
   speed: number;

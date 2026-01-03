@@ -18,13 +18,12 @@ export class SkySystem {
     canvas.height = 512;
     const ctx = canvas.getContext('2d')!;
 
-    // Sky gradient from palette
+    // Soft pastel sky gradient - airy and colorful, not white or foggy
     const gradient = ctx.createLinearGradient(0, 0, 0, 512);
-    gradient.addColorStop(0, '#CFE9FF');    // Sky from palette
-    gradient.addColorStop(0.3, '#DAF0FF');  // Lighter sky
-    gradient.addColorStop(0.6, '#E8F6FF');  // Very light
-    gradient.addColorStop(0.85, '#FFF8F0'); // Warm hint
-    gradient.addColorStop(1, '#FFEDDC');    // Warm horizon
+    gradient.addColorStop(0, '#CFE9FF');    // Top: soft sky blue
+    gradient.addColorStop(0.4, '#D8EFFF');  // Mid-upper: slightly lighter
+    gradient.addColorStop(0.7, '#E2F3FF');  // Mid-lower: pastel
+    gradient.addColorStop(1, '#EAF6FF');    // Horizon: very light blue (no white)
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 512, 512);
 

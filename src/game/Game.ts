@@ -73,7 +73,7 @@ export class Game {
   constructor() {
     // Scene setup
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0xCFE9FF); // Sky color from palette
+    this.scene.background = new THREE.Color(0xCFE9FF); // Match sky top color
 
     // Camera setup - narrower FOV for cartoon feel
     this.camera = new THREE.PerspectiveCamera(
@@ -93,7 +93,7 @@ export class Game {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Soft PCF shadows
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.5; // Extra bright exposure
+    this.renderer.toneMappingExposure = 1.2; // Balanced exposure - not overexposed
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     document.body.appendChild(this.renderer.domElement);
 

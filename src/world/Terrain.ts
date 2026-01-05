@@ -523,7 +523,7 @@ export class Terrain {
     
     // SNOW CAPS on top of each layer!
     const snowMat = new THREE.MeshStandardMaterial({ color: 0xF5F8FA, roughness: 0.9, metalness: 0 });
-    layers.forEach((layer, i) => {
+    layers.forEach((layer) => {
       const snowCap = new THREE.Mesh(
         new THREE.ConeGeometry(layer.r1 * 0.85, 0.4, 8),
         snowMat

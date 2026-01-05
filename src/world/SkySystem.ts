@@ -18,12 +18,12 @@ export class SkySystem {
     canvas.height = 512;
     const ctx = canvas.getContext('2d')!;
 
-    // VIBRANT Fall Guys sky - bright saturated blue!
+    // SOFT CEL-SHADED SKY - gentle pastel gradient
     const gradient = ctx.createLinearGradient(0, 0, 0, 512);
-    gradient.addColorStop(0, '#22AAFF');    // Top: bright cyan blue
-    gradient.addColorStop(0.3, '#44BBFF');  // Upper: saturated sky blue
-    gradient.addColorStop(0.6, '#66CCFF');  // Mid: bright blue
-    gradient.addColorStop(1, '#99DDFF');    // Horizon: light cyan
+    gradient.addColorStop(0, '#A8D4E6');    // Top: soft blue
+    gradient.addColorStop(0.3, '#C0E0F0');  // Upper: light pastel blue
+    gradient.addColorStop(0.6, '#D4ECF8');  // Mid: very soft blue
+    gradient.addColorStop(1, '#E8F5FC');    // Horizon: almost white-blue
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 512, 512);
 
@@ -38,30 +38,30 @@ export class SkySystem {
   private createSun(): void {
     const pos = new THREE.Vector3(100, 120, 80); // Higher sun for better highlight angles
 
-    // Cute cartoon sun - bright warm yellow
+    // Soft warm sun - not too bright
     const sun = new THREE.Mesh(
-      new THREE.SphereGeometry(15, 32, 32),
-      new THREE.MeshBasicMaterial({ color: 0xFFEE55 })
+      new THREE.SphereGeometry(12, 32, 32),
+      new THREE.MeshBasicMaterial({ color: 0xFFF8E8 })
     );
     sun.position.copy(pos);
     this.scene.add(sun);
 
-    // Bright glow
+    // Gentle glow
     const glow = new THREE.Mesh(
-      new THREE.SphereGeometry(25, 32, 32),
-      new THREE.MeshBasicMaterial({ color: 0xFFCC33, transparent: true, opacity: 0.4 })
+      new THREE.SphereGeometry(20, 32, 32),
+      new THREE.MeshBasicMaterial({ color: 0xFFF0D0, transparent: true, opacity: 0.3 })
     );
     glow.position.copy(pos);
     this.scene.add(glow);
 
-    // === VIBRANT LIGHTING for Fall Guys look ===
+    // === SOFT CEL-SHADED LIGHTING ===
     
-    // 1. Bright warm ambient - fills everything with color
-    const ambient = new THREE.AmbientLight(0xFFFFEE, 0.8);
+    // 1. Soft cool ambient for that illustrative look
+    const ambient = new THREE.AmbientLight(0xE8F0FF, 0.7);
     this.scene.add(ambient);
 
-    // 2. Strong warm directional sun
-    this.sun = new THREE.DirectionalLight(0xFFFFDD, 1.4);
+    // 2. Soft warm directional - gentle shadows
+    this.sun = new THREE.DirectionalLight(0xFFF8F0, 1.0);
     this.sun.position.copy(pos);
     this.sun.castShadow = true;
     

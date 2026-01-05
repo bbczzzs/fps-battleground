@@ -71,9 +71,12 @@ export class Game {
   private readonly STATE_SEND_RATE = 50; // ms
 
   constructor() {
-    // Scene setup
+    // Scene setup - soft cel-shaded style
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x44BBFF); // Bright cyan sky
+    this.scene.background = new THREE.Color(0xD8EEF8); // Soft pastel sky blue
+    
+    // Atmospheric fog for depth like Club Penguin Island
+    this.scene.fog = new THREE.Fog(0xD8EEF8, 50, 300);
 
     // Camera setup - narrower FOV for cartoon feel
     this.camera = new THREE.PerspectiveCamera(
@@ -91,9 +94,9 @@ export class Game {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Soft PCF shadows
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.5; // Brighter exposure for candy look
+    this.renderer.toneMappingExposure = 1.1; // Softer, not overexposed
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     document.body.appendChild(this.renderer.domElement);
 

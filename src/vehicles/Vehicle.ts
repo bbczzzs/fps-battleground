@@ -102,15 +102,15 @@ export class Vehicle {
   }
 
   private createCarMesh(group: THREE.Group): THREE.Group {
-    // GLOSSY candy car - Fall Guys style!
-    const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0xFF6655, roughness: 0.35, metalness: 0.1 });
-    const wheelMaterial = new THREE.MeshStandardMaterial({ color: 0x6A6A7A, roughness: 0.5, metalness: 0 });
+    // SOFT CEL-SHADED car - Club Penguin style!
+    const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0xE8A5B0, roughness: 0.65, metalness: 0 });
+    const wheelMaterial = new THREE.MeshStandardMaterial({ color: 0x6A7080, roughness: 0.7, metalness: 0 });
     const glassMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x88DDFF, 
+      color: 0xB8D8E8, 
       transparent: true, 
       opacity: 0.7,
-      roughness: 0.2,
-      metalness: 0.1
+      roughness: 0.4,
+      metalness: 0
     });
 
     // Chunky rounded body
@@ -122,7 +122,7 @@ export class Vehicle {
     // Cute bubble cabin - rounded
     const cabinGeo = new THREE.SphereGeometry(1.4, 12, 10);
     cabinGeo.scale(1.4, 0.8, 1.2);
-    const cabin = new THREE.Mesh(cabinGeo, new THREE.MeshStandardMaterial({ color: 0xFFAA55, roughness: 0.35, metalness: 0.1 }));
+    const cabin = new THREE.Mesh(cabinGeo, new THREE.MeshStandardMaterial({ color: 0xD89888, roughness: 0.65, metalness: 0 }));
     cabin.position.set(0, 1.9, -0.3);
     cabin.castShadow = true;
     group.add(cabin);
@@ -135,7 +135,7 @@ export class Vehicle {
 
     // Big chunky wheels with cute hubcaps
     const wheelGeo = new THREE.CylinderGeometry(0.55, 0.55, 0.4, 16);
-    const hubCapMaterial = new THREE.MeshStandardMaterial({ color: 0xFFDD44, roughness: 0.3, metalness: 0.1 });
+    const hubCapMaterial = new THREE.MeshStandardMaterial({ color: 0xF0D090, roughness: 0.6, metalness: 0 });
     const wheelPositions = [
       { x: 1.4, z: 1.6 }, { x: -1.4, z: 1.6 },
       { x: 1.4, z: -1.6 }, { x: -1.4, z: -1.6 }
@@ -168,14 +168,14 @@ export class Vehicle {
   }
 
   private createHelicopterMesh(group: THREE.Group): THREE.Group {
-    // GLOSSY candy helicopter - Fall Guys style!
-    const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0x77DD88, roughness: 0.35, metalness: 0.1 });
+    // SOFT CEL-SHADED helicopter - Club Penguin style!
+    const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0x8BB89A, roughness: 0.65, metalness: 0 });
     const glassMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x88DDFF, 
+      color: 0xB8D8E8, 
       transparent: true, 
       opacity: 0.7,
-      roughness: 0.2,
-      metalness: 0.1
+      roughness: 0.4,
+      metalness: 0
     });
 
     // Chunky round body

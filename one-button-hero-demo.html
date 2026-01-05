@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>One Button Hero 🎮</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        h1 {
+            color: #fff;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px #ff6b6b;
+        }
+
+        .subtitle {
+            color: #aaa;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 800px;
+            height: 400px;
+            background: linear-gradient(180deg, #2d3561 0%, #1a1a2e 60%, #0f0f1a 100%);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5), inset 0 0 100px rgba(255,255,255,0.05);
+            border: 2px solid #333;
+        }
+
+        /* Ground */
+        .ground {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 80px;
+            background: linear-gradient(180deg, #2d5016 0%, #1a3009 100%);
+        }
+
+        /* Hero */
+        #hero {
+            position: absolute;
+            bottom: 80px;
+            left: 100px;
+            width: 50px;
+            height: 70px;
+            font-size: 50px;
+            transition: transform 0.1s;
+            z-index: 10;
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5));
+        }
+
+        #hero.jump {
+            animation: jump 0.5s ease-out;
+        }
+
+        #hero.attack {
+            animation: attack 0.2s ease-out;
+        }
+
+        @keyframes jump {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-120px); }
+        }
+
+        @keyframes attack {
+            0%, 100% { transform: translateX(0) scale(1); }
+            50% { transform: translateX(20px) scale(1.2); }
+        }
+
+        /* Sword effect */
+        .sword-slash {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            font-size: 60px;
+            opacity: 0;
+            z-index: 15;
+            pointer-events: none;
+        }
+
+        .sword-slash.show {
+            animation: slash 0.3s ease-out;
+        }
+
+        @keyframes slash {
+            0% { opacity: 1; transform: rotate(-45deg) scale(0.5); }
+            100% { opacity: 0; transform: rotate(45deg) scale(1.5); }
+        }
+
+        /* Enemies */
+        .enemy {
+            position: absolute;
+            bottom: 80px;
+            font-size: 45px;
+            transition: transform 0.1s;
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5));
+        }
+
+        .enemy.hit {
+            animation: enemyHit 0.3s ease-out;
+        }
+
+        @keyframes enemyHit {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); filter: brightness(2); }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        /* Obstacles */
+        .obstacle {
+            position: absolute;
+            bottom: 80px;
+            font-size: 40px;
+        }
+
+        /* Coins */
+        .coin {
+            position: absolute;
+            font-size: 25px;
+            animation: coinFloat 1s ease-in-out infinite;
+        }
+
+        @keyframes coinFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .coin.collected {
+            animation: coinCollect 0.3s ease-out forwards;
+        }
+
+        @keyframes coinCollect {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(2) translateY(-30px); opacity: 0; }
+        }
+
+        /* HUD */
+        #hud {
+            position: absolute;
+            top: 15px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .health-bar {
+            width: 150px;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid #555;
+        }
+
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff4757, #ff6b81);
+            transition: width 0.3s;
+        }
+
+        /* Action indicator */
+        #actionIndicator {
+            position: absolute;
+            bottom: 160px;
+            left: 80px;
+            padding: 8px 16px;
+            background: rgba(0,0,0,0.7);
+            color: #ffd700;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.2s;
+            border: 2px solid #ffd700;
+        }
+
+        #actionIndicator.show {
+            opacity: 1;
+            animation: pulse 0.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Start/Game Over screen */
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        #overlay h2 {
+            color: #fff;
+            font-size: 36px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px #ff6b6b;
+        }
+
+        #overlay p {
+            color: #aaa;
+            margin-bottom: 30px;
+            text-align: center;
+            line-height: 1.8;
+        }
+
+        #overlay .score-display {
+            color: #ffd700;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        #startBtn {
+            padding: 15px 50px;
+            font-size: 20px;
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            border: none;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 5px 20px rgba(255,107,107,0.4);
+        }
+
+        #startBtn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 10px 30px rgba(255,107,107,0.6);
+        }
+
+        /* Instructions */
+        .instructions {
+            margin-top: 20px;
+            color: #888;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .key {
+            display: inline-block;
+            background: #333;
+            padding: 5px 15px;
+            border-radius: 5px;
+            margin: 5px;
+            border: 2px solid #555;
+            color: #fff;
+        }
+
+        /* Background elements */
+        .bg-mountain {
+            position: absolute;
+            bottom: 80px;
+            width: 200px;
+            height: 150px;
+            background: #1a1a2e;
+            clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+            opacity: 0.5;
+        }
+
+        .stars {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.5;
+        }
+
+        /* Damage flash */
+        #damageFlash {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,0,0,0.3);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        #damageFlash.show {
+            animation: damageFlash 0.2s ease-out;
+        }
+
+        @keyframes damageFlash {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* Score popup */
+        .score-popup {
+            position: absolute;
+            color: #ffd700;
+            font-weight: bold;
+            font-size: 20px;
+            pointer-events: none;
+            animation: scorePopup 0.8s ease-out forwards;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        @keyframes scorePopup {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-50px) scale(1.5); }
+        }
+
+        /* Distance marker */
+        .distance-marker {
+            position: absolute;
+            bottom: 85px;
+            color: #555;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>⚔️ One Button Hero</h1>
+    <p class="subtitle">Press SPACE or CLICK to do everything!</p>
+    
+    <div id="gameContainer">
+        <div class="ground"></div>
+        
+        <div id="hud">
+            <div>
+                ❤️ <div class="health-bar"><div class="health-fill" id="healthFill"></div></div>
+            </div>
+            <div>🏆 Score: <span id="scoreDisplay">0</span></div>
+            <div>📏 <span id="distanceDisplay">0</span>m</div>
+        </div>
+        
+        <div id="hero">🦸</div>
+        <div class="sword-slash" id="swordSlash">⚔️</div>
+        <div id="actionIndicator">JUMP!</div>
+        <div id="damageFlash"></div>
+        
+        <div id="overlay">
+            <h2>⚔️ One Button Hero</h2>
+            <p>
+                A full RPG with just ONE button!<br>
+                🦘 Jump over obstacles<br>
+                ⚔️ Attack enemies (timing matters!)<br>
+                💰 Collect coins for bonus points
+            </p>
+            <button id="startBtn">▶️ START ADVENTURE</button>
+        </div>
+    </div>
+    
+    <div class="instructions">
+        <span class="key">SPACE</span> or <span class="key">CLICK</span> or <span class="key">TAP</span> — One button does it all!
+    </div>
+
+    <script>
+        const gameContainer = document.getElementById('gameContainer');
+        const hero = document.getElementById('hero');
+        const overlay = document.getElementById('overlay');
+        const startBtn = document.getElementById('startBtn');
+        const healthFill = document.getElementById('healthFill');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const distanceDisplay = document.getElementById('distanceDisplay');
+        const actionIndicator = document.getElementById('actionIndicator');
+        const swordSlash = document.getElementById('swordSlash');
+        const damageFlash = document.getElementById('damageFlash');
+        
+        let gameRunning = false;
+        let health = 100;
+        let score = 0;
+        let distance = 0;
+        let isJumping = false;
+        let isAttacking = false;
+        let enemies = [];
+        let obstacles = [];
+        let coins = [];
+        let spawnTimer = 0;
+        let gameSpeed = 3;
+        let nearestEnemy = null;
+        
+        const HERO_X = 100;
+        const GROUND_Y = 80;
+        
+        // Create stars background
+        for (let i = 0; i < 50; i++) {
+            const star = document.createElement('div');
+            star.className = 'stars';
+            star.style.left = Math.random() * 800 + 'px';
+            star.style.top = Math.random() * 200 + 'px';
+            star.style.opacity = Math.random() * 0.5 + 0.2;
+            gameContainer.appendChild(star);
+        }
+        
+        // Create mountains
+        for (let i = 0; i < 3; i++) {
+            const mountain = document.createElement('div');
+            mountain.className = 'bg-mountain';
+            mountain.style.left = (200 + i * 250) + 'px';
+            mountain.style.width = (150 + Math.random() * 100) + 'px';
+            mountain.style.height = (80 + Math.random() * 80) + 'px';
+            gameContainer.appendChild(mountain);
+        }
+        
+        function spawnEnemy() {
+            const enemy = document.createElement('div');
+            enemy.className = 'enemy';
+            enemy.innerHTML = ['👹', '👺', '💀', '🧟'][Math.floor(Math.random() * 4)];
+            enemy.style.right = '-50px';
+            enemy.dataset.x = 850;
+            gameContainer.appendChild(enemy);
+            enemies.push(enemy);
+        }
+        
+        function spawnObstacle() {
+            const obstacle = document.createElement('div');
+            obstacle.className = 'obstacle';
+            obstacle.innerHTML = ['🪨', '🌵', '📦'][Math.floor(Math.random() * 3)];
+            obstacle.style.right = '-50px';
+            obstacle.dataset.x = 850;
+            gameContainer.appendChild(obstacle);
+            obstacles.push(obstacle);
+        }
+        
+        function spawnCoin() {
+            const coin = document.createElement('div');
+            coin.className = 'coin';
+            coin.innerHTML = '🪙';
+            coin.style.right = '-30px';
+            coin.style.bottom = (120 + Math.random() * 100) + 'px';
+            coin.dataset.x = 830;
+            gameContainer.appendChild(coin);
+            coins.push(coin);
+        }
+        
+        function showScorePopup(x, y, text) {
+            const popup = document.createElement('div');
+            popup.className = 'score-popup';
+            popup.textContent = text;
+            popup.style.left = x + 'px';
+            popup.style.top = y + 'px';
+            gameContainer.appendChild(popup);
+            setTimeout(() => popup.remove(), 800);
+        }
+        
+        function updateActionIndicator() {
+            let action = null;
+            let enemyClose = false;
+            
+            // Check for nearby enemy
+            for (const enemy of enemies) {
+                const ex = parseFloat(enemy.dataset.x);
+                if (ex < 200 && ex > 80) {
+                    action = '⚔️ ATTACK!';
+                    nearestEnemy = enemy;
+                    enemyClose = true;
+                    break;
+                }
+            }
+            
+            // Check for nearby obstacle
+            if (!action) {
+                for (const obstacle of obstacles) {
+                    const ox = parseFloat(obstacle.dataset.x);
+                    if (ox < 250 && ox > 120) {
+                        action = '🦘 JUMP!';
+                        break;
+                    }
+                }
+            }
+            
+            nearestEnemy = enemyClose ? nearestEnemy : null;
+            
+            if (action) {
+                actionIndicator.textContent = action;
+                actionIndicator.classList.add('show');
+            } else {
+                actionIndicator.classList.remove('show');
+            }
+        }
+        
+        function doAction() {
+            if (!gameRunning) return;
+            
+            // Attack if enemy is near
+            if (nearestEnemy) {
+                attack();
+                return;
+            }
+            
+            // Otherwise jump
+            jump();
+        }
+        
+        function jump() {
+            if (isJumping) return;
+            isJumping = true;
+            hero.classList.add('jump');
+            
+            setTimeout(() => {
+                hero.classList.remove('jump');
+                isJumping = false;
+            }, 500);
+        }
+        
+        function attack() {
+            if (isAttacking || !nearestEnemy) return;
+            isAttacking = true;
+            
+            hero.classList.add('attack');
+            
+            // Show sword slash
+            const enemyX = parseFloat(nearestEnemy.dataset.x);
+            swordSlash.style.left = (HERO_X + 30) + 'px';
+            swordSlash.style.bottom = '100px';
+            swordSlash.classList.add('show');
+            
+            // Check if timing is good (enemy close enough)
+            if (enemyX < 180 && enemyX > 100) {
+                // Perfect hit!
+                nearestEnemy.classList.add('hit');
+                const points = 100;
+                score += points;
+                showScorePopup(enemyX, 200, '+' + points);
+                
+                setTimeout(() => {
+                    if (nearestEnemy && nearestEnemy.parentNode) {
+                        nearestEnemy.remove();
+                    }
+                    enemies = enemies.filter(e => e !== nearestEnemy);
+                    nearestEnemy = null;
+                }, 300);
+            }
+            
+            setTimeout(() => {
+                hero.classList.remove('attack');
+                swordSlash.classList.remove('show');
+                isAttacking = false;
+            }, 200);
+        }
+        
+        function takeDamage(amount) {
+            health -= amount;
+            healthFill.style.width = health + '%';
+            damageFlash.classList.add('show');
+            setTimeout(() => damageFlash.classList.remove('show'), 200);
+            
+            if (health <= 0) {
+                gameOver();
+            }
+        }
+        
+        function gameOver() {
+            gameRunning = false;
+            overlay.querySelector('h2').textContent = '💀 Game Over!';
+            overlay.querySelector('p').innerHTML = `
+                <div class="score-display">Final Score: ${score}</div>
+                <div>Distance: ${distance}m</div>
+            `;
+            startBtn.textContent = '🔄 Try Again';
+            overlay.style.display = 'flex';
+        }
+        
+        function reset() {
+            health = 100;
+            score = 0;
+            distance = 0;
+            gameSpeed = 3;
+            healthFill.style.width = '100%';
+            scoreDisplay.textContent = '0';
+            distanceDisplay.textContent = '0';
+            
+            // Remove all entities
+            enemies.forEach(e => e.remove());
+            obstacles.forEach(o => o.remove());
+            coins.forEach(c => c.remove());
+            enemies = [];
+            obstacles = [];
+            coins = [];
+        }
+        
+        function gameLoop() {
+            if (!gameRunning) return;
+            
+            // Update distance
+            distance += gameSpeed * 0.05;
+            distanceDisplay.textContent = Math.floor(distance);
+            
+            // Gradually increase speed
+            gameSpeed = 3 + Math.floor(distance / 100) * 0.5;
+            
+            // Spawn entities
+            spawnTimer++;
+            if (spawnTimer % 60 === 0) {
+                const rand = Math.random();
+                if (rand < 0.4) spawnEnemy();
+                else if (rand < 0.7) spawnObstacle();
+                else spawnCoin();
+            }
+            
+            // Get hero Y position (for jump detection)
+            const heroRect = hero.getBoundingClientRect();
+            const containerRect = gameContainer.getBoundingClientRect();
+            const heroBottom = containerRect.bottom - heroRect.bottom;
+            const isInAir = heroBottom > 90;
+            
+            // Update enemies
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                const enemy = enemies[i];
+                let x = parseFloat(enemy.dataset.x) - gameSpeed;
+                enemy.dataset.x = x;
+                enemy.style.left = x + 'px';
+                
+                // Collision with hero
+                if (x < 130 && x > 70 && !enemy.classList.contains('hit')) {
+                    takeDamage(20);
+                    enemy.classList.add('hit');
+                    setTimeout(() => {
+                        enemy.remove();
+                        enemies.splice(i, 1);
+                    }, 300);
+                }
+                
+                // Remove off-screen
+                if (x < -50) {
+                    enemy.remove();
+                    enemies.splice(i, 1);
+                }
+            }
+            
+            // Update obstacles
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const obstacle = obstacles[i];
+                let x = parseFloat(obstacle.dataset.x) - gameSpeed;
+                obstacle.dataset.x = x;
+                obstacle.style.left = x + 'px';
+                
+                // Collision with hero (only if not jumping)
+                if (x < 130 && x > 80 && !isInAir) {
+                    takeDamage(15);
+                    obstacle.remove();
+                    obstacles.splice(i, 1);
+                    continue;
+                }
+                
+                // Remove off-screen
+                if (x < -50) {
+                    obstacle.remove();
+                    obstacles.splice(i, 1);
+                }
+            }
+            
+            // Update coins
+            for (let i = coins.length - 1; i >= 0; i--) {
+                const coin = coins[i];
+                let x = parseFloat(coin.dataset.x) - gameSpeed;
+                coin.dataset.x = x;
+                coin.style.left = x + 'px';
+                
+                // Collision with hero
+                const coinBottom = parseInt(coin.style.bottom);
+                if (x < 140 && x > 80 && (isInAir || coinBottom < 130)) {
+                    coin.classList.add('collected');
+                    score += 50;
+                    showScorePopup(x, 150, '+50');
+                    setTimeout(() => coin.remove(), 300);
+                    coins.splice(i, 1);
+                    continue;
+                }
+                
+                // Remove off-screen
+                if (x < -30) {
+                    coin.remove();
+                    coins.splice(i, 1);
+                }
+            }
+            
+            // Update score display
+            scoreDisplay.textContent = score;
+            
+            // Update action indicator
+            updateActionIndicator();
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        function startGame() {
+            reset();
+            overlay.style.display = 'none';
+            gameRunning = true;
+            gameLoop();
+        }
+        
+        // Event listeners
+        startBtn.addEventListener('click', startGame);
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (!gameRunning && overlay.style.display !== 'none') {
+                    startGame();
+                } else {
+                    doAction();
+                }
+            }
+        });
+        
+        gameContainer.addEventListener('click', (e) => {
+            if (e.target === startBtn) return;
+            if (!gameRunning && overlay.style.display !== 'none') {
+                startGame();
+            } else {
+                doAction();
+            }
+        });
+        
+        // Touch support
+        gameContainer.addEventListener('touchstart', (e) => {
+            if (e.target === startBtn) return;
+            e.preventDefault();
+            if (!gameRunning && overlay.style.display !== 'none') {
+                startGame();
+            } else {
+                doAction();
+            }
+        });
+    </script>
+</body>
+</html>

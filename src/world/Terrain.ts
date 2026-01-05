@@ -1,20 +1,20 @@
 import * as THREE from 'three';
 
-// VIBRANT CANDY PALETTE - Fall Guys style!
+// SOFT CEL-SHADED PALETTE - Club Penguin Island style!
 const PASTEL = {
-  grass: 0xFFCC33,      // Bright golden yellow like Fall Guys ground
-  grassAlt: 0xFFDD55,   // Lighter golden variation
-  path: 0xFFE066,       // Warm yellow path
-  water: 0x44CCFF,      // Bright cyan water
-  sand: 0xFFDD88,       // Warm sand
-  rock: 0xDD99CC,       // Pink-purple rocks
-  wood: 0xFF9966,       // Bright orange wood
-  leaf: 0x88DD66,       // Bright lime green
-  flower1: 0xFF6699,    // Hot pink
-  flower2: 0xFF5544,    // Bright red-orange
-  flower3: 0xFFDD33,    // Bright yellow
-  building: 0xFF7799,   // Hot pink buildings like Fall Guys
-  roof: 0xFF5566,       // Bright red roofs
+  grass: 0xE8F4F8,      // Soft snow-white blue ground
+  grassAlt: 0xD8EEF5,   // Slightly blue-tinted snow
+  path: 0xC8D8E0,       // Cool gray path
+  water: 0xA8D8EA,      // Soft sky blue water
+  sand: 0xF5E6D3,       // Warm sand cream
+  rock: 0x9BB5C4,       // Soft blue-gray rocks
+  wood: 0xD4A574,       // Warm wood brown
+  leaf: 0x6B9B7A,       // Muted teal-green trees
+  flower1: 0xE8A5B0,    // Soft coral pink
+  flower2: 0xD4847A,    // Muted salmon
+  flower3: 0xF0C987,    // Soft warm yellow
+  building: 0xE8DDD0,   // Warm cream buildings
+  roof: 0xD4847A,       // Coral-salmon roofs
 };
 
 export class Terrain {
@@ -106,11 +106,11 @@ export class Terrain {
     
     geometry.computeVertexNormals();
 
-    // GLOSSY candy ground - Fall Guys style!
+    // SOFT CEL-SHADED ground - matte snowy look
     const material = new THREE.MeshStandardMaterial({
       color: PASTEL.grass,
-      roughness: 0.35,
-      metalness: 0.1,
+      roughness: 0.75,
+      metalness: 0,
       flatShading: false
     });
 
@@ -203,13 +203,13 @@ export class Terrain {
   }
 
   private createMainRoads(): void {
-    // GLOSSY candy road - Fall Guys style!
+    // SOFT CEL-SHADED road - cool gray like snowy path
     const cartoonRoad = new THREE.MeshStandardMaterial({ 
-      color: 0xFF9988,  // Peachy pink road like Fall Guys
-      roughness: 0.4,   // Glossy shine
-      metalness: 0.05 
+      color: 0xC0CCD4,  // Cool blue-gray road
+      roughness: 0.7,
+      metalness: 0 
     });
-    const yellowLine = new THREE.MeshBasicMaterial({ color: 0xFFEE44 }); // Bright yellow
+    const yellowLine = new THREE.MeshBasicMaterial({ color: 0xE8D4A0 }); // Soft cream line
     
     for (let x = -150; x < 150; x += 12) {
       const road = new THREE.Mesh(new THREE.PlaneGeometry(12.5, 10), cartoonRoad);
@@ -233,6 +233,18 @@ export class Terrain {
       mark.position.set(i + 2, this.getHeightAt(i, 0) + 0.15, 0);
       this.scene.add(mark);
     }
+    
+    // Add lamp posts along roads - coral colored like reference
+    for (let x = -120; x <= 120; x += 40) {
+      this.createLampPost(x, 8);
+      this.createLampPost(x, -8);
+    }
+    for (let z = -120; z <= 120; z += 40) {
+      if (Math.abs(z) > 15) { // Skip center intersection
+        this.createLampPost(8, z);
+        this.createLampPost(-8, z);
+      }
+    }
   }
 
   private createMilitaryBase(): void {
@@ -252,42 +264,51 @@ export class Terrain {
     const groundY = this.getHeightAt(x, z);
     const group = new THREE.Group();
     
-    // VIBRANT candy building colors - Fall Guys style!
-    const cartoonColors = [0xFF6699, 0x66DDFF, 0xFFDD44, 0x66FF99, 0xFF9966, 0xDD88FF, 0x88EEFF];
+    // SOFT CEL-SHADED building colors - warm creams and grays
+    const cartoonColors = [0xE8DDD0, 0xD8CFC0, 0xE0D8C8, 0xD4CBC0, 0xE5DCD0, 0xDDD4C8];
     const buildingColor = cartoonColors[Math.floor(Math.random() * cartoonColors.length)];
     
-    const wall = new THREE.MeshStandardMaterial({ color: buildingColor, roughness: 0.4, metalness: 0.05 });
+    const wall = new THREE.MeshStandardMaterial({ color: buildingColor, roughness: 0.75, metalness: 0 });
     const building = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), wall);
     building.position.y = h / 2;
     building.castShadow = true;
     group.add(building);
     
-    // Bright shiny roof - Fall Guys candy style!
-    const roofColors = [0xFF4466, 0x44DDCC, 0xFFCC22, 0x66EE99];
+    // Coral/salmon roofs - like Club Penguin Island
+    const roofColors = [0xD4847A, 0xC87A70, 0xD89080, 0xCC8878];
     const roofColor = roofColors[Math.floor(Math.random() * roofColors.length)];
     const roof = new THREE.Mesh(
       new THREE.ConeGeometry(Math.max(w, d) * 0.8, h * 0.4, 4),
-      new THREE.MeshStandardMaterial({ color: roofColor, roughness: 0.35, metalness: 0.1 })
+      new THREE.MeshStandardMaterial({ color: roofColor, roughness: 0.65, metalness: 0 })
     );
     roof.position.y = h + h * 0.2;
     roof.rotation.y = Math.PI / 4;
     roof.castShadow = true;
     group.add(roof);
     
-    // Cute round windows
+    // Add snow on roof
+    const snowRoof = new THREE.Mesh(
+      new THREE.ConeGeometry(Math.max(w, d) * 0.7, h * 0.15, 4),
+      new THREE.MeshStandardMaterial({ color: 0xF5F8FA, roughness: 0.9, metalness: 0 })
+    );
+    snowRoof.position.y = h + h * 0.35;
+    snowRoof.rotation.y = Math.PI / 4;
+    group.add(snowRoof);
+    
+    // Soft blue-tinted windows
     for (let i = 0; i < Math.floor(w / 4); i++) {
       const windowFrame = new THREE.Mesh(
-        new THREE.CircleGeometry(0.8, 16),
-        new THREE.MeshBasicMaterial({ color: 0x87CEEB })
+        new THREE.PlaneGeometry(1.2, 1.5),
+        new THREE.MeshStandardMaterial({ color: 0xB8D4E3, roughness: 0.3, metalness: 0.1 })
       );
       windowFrame.position.set(-w/2 + 2 + i * 4, h/2, d/2 + 0.05);
       group.add(windowFrame);
     }
     
-    // Add cute door
+    // Warm wood door
     const door = new THREE.Mesh(
       new THREE.PlaneGeometry(2, 3),
-      new THREE.MeshStandardMaterial({ color: 0xFF7755, roughness: 0.4, metalness: 0 })
+      new THREE.MeshStandardMaterial({ color: 0x9B7B5A, roughness: 0.7, metalness: 0 })
     );
     door.position.set(0, 1.5, d/2 + 0.05);
     group.add(door);
@@ -305,8 +326,8 @@ export class Terrain {
     const groundY = this.getHeightAt(x, z);
     const group = new THREE.Group();
     
-    // Cute wooden lookout tower - glossy candy style
-    const wood = new THREE.MeshStandardMaterial({ color: 0xFFBB77, roughness: 0.4, metalness: 0 });
+    // Warm wood lookout tower - soft cel-shaded
+    const wood = new THREE.MeshStandardMaterial({ color: 0xC4A080, roughness: 0.75, metalness: 0 });
     
     // Chunky wooden legs
     [[-1.5, -1.5], [1.5, -1.5], [-1.5, 1.5], [1.5, 1.5]].forEach(([lx, lz]) => {
@@ -316,19 +337,19 @@ export class Terrain {
       group.add(leg);
     });
     
-    // Cute platform
+    // Warm platform
     const platform = new THREE.Mesh(
       new THREE.BoxGeometry(5, 0.5, 5),
-      new THREE.MeshStandardMaterial({ color: 0xFFDD88, roughness: 0.4, metalness: 0 })
+      new THREE.MeshStandardMaterial({ color: 0xD4B090, roughness: 0.7, metalness: 0 })
     );
     platform.position.y = 8;
     platform.castShadow = true;
     group.add(platform);
     
-    // Little roof
+    // Little roof - coral color
     const roof = new THREE.Mesh(
       new THREE.ConeGeometry(4, 2, 4),
-      new THREE.MeshStandardMaterial({ color: 0xFF6644, roughness: 0.35, metalness: 0 })
+      new THREE.MeshStandardMaterial({ color: 0xD4847A, roughness: 0.65, metalness: 0 })
     );
     roof.position.y = 10;
     roof.rotation.y = Math.PI / 4;
@@ -348,8 +369,8 @@ export class Terrain {
     const groundY = this.getHeightAt(x, z);
     const group = new THREE.Group();
     
-    // Cartoon puffy pillows instead of sandbags
-    const pillowColors = [0xFFB6C1, 0xE6E6FA, 0xB0E0E6, 0xF0E68C];
+    // Soft cushiony barriers
+    const pillowColors = [0xE8DDD0, 0xD8CFC0, 0xC8D0D8, 0xD0C8C0];
     
     for (let i = 0; i < length; i++) {
       for (let row = 0; row < 3; row++) {
@@ -469,73 +490,79 @@ export class Terrain {
   private createTree(x: number, z: number): void {
     const group = new THREE.Group();
     
-    // GLOSSY candy trunk - warm orange-brown
+    // Warm brown trunk - matte cel-shaded
     const trunk = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.5, 0.7, 3, 12),
-      new THREE.MeshStandardMaterial({ color: 0xCC7744, roughness: 0.4, metalness: 0.05 })
+      new THREE.CylinderGeometry(0.4, 0.6, 2.5, 8),
+      new THREE.MeshStandardMaterial({ color: 0x8B6B4A, roughness: 0.8, metalness: 0 })
     );
-    trunk.position.y = 1.5;
+    trunk.position.y = 1.25;
     trunk.castShadow = true;
     group.add(trunk);
     
-    // GLOSSY bright foliage - candy cotton look
-    const foliageColors = [0x55EE66, 0x44DD55, 0x66FF77, 0x33CC44];
+    // TEAL-GREEN foliage layers - Club Penguin Island style!
+    const foliageColors = [0x5A8B6A, 0x4A7B5A, 0x6A9B7A, 0x5B8C6B];
     const foliageColor = foliageColors[Math.floor(Math.random() * foliageColors.length)];
-    const foliageMat = new THREE.MeshStandardMaterial({ color: foliageColor, roughness: 0.35, metalness: 0.1 });
+    const foliageMat = new THREE.MeshStandardMaterial({ color: foliageColor, roughness: 0.7, metalness: 0 });
     
-    // Main center puff
-    const mainPuff = new THREE.Mesh(new THREE.SphereGeometry(2.5, 16, 12), foliageMat);
-    mainPuff.position.y = 5;
-    mainPuff.castShadow = true;
-    group.add(mainPuff);
-    
-    // Surrounding smaller puffs for cloud-like tree top
-    const puffPositions = [
-      { x: 1.5, y: 4.5, z: 0.5, s: 1.5 },
-      { x: -1.5, y: 4.8, z: 0, s: 1.4 },
-      { x: 0.5, y: 4, z: 1.5, s: 1.3 },
-      { x: -0.5, y: 4.2, z: -1.5, s: 1.4 },
-      { x: 0, y: 6.2, z: 0, s: 1.2 }
+    // Layered cone foliage like reference images
+    const layers = [
+      { y: 3.5, r1: 2.2, r2: 0.1, h: 2.5 },
+      { y: 5.0, r1: 1.8, r2: 0.1, h: 2.0 },
+      { y: 6.2, r1: 1.3, r2: 0.1, h: 1.5 },
     ];
     
-    puffPositions.forEach(p => {
-      const puff = new THREE.Mesh(new THREE.SphereGeometry(p.s, 12, 8), foliageMat);
-      puff.position.set(p.x, p.y, p.z);
-      puff.castShadow = true;
-      group.add(puff);
+    layers.forEach(layer => {
+      const cone = new THREE.Mesh(
+        new THREE.ConeGeometry(layer.r1, layer.h, 8),
+        foliageMat
+      );
+      cone.position.y = layer.y;
+      cone.castShadow = true;
+      group.add(cone);
+    });
+    
+    // SNOW CAPS on top of each layer!
+    const snowMat = new THREE.MeshStandardMaterial({ color: 0xF5F8FA, roughness: 0.9, metalness: 0 });
+    layers.forEach((layer, i) => {
+      const snowCap = new THREE.Mesh(
+        new THREE.ConeGeometry(layer.r1 * 0.85, 0.4, 8),
+        snowMat
+      );
+      snowCap.position.y = layer.y + layer.h * 0.35;
+      snowCap.castShadow = true;
+      group.add(snowCap);
     });
     
     group.position.set(x, this.getHeightAt(x, z), z);
-    group.scale.setScalar(0.6 + Math.random() * 0.5);
+    group.scale.setScalar(0.7 + Math.random() * 0.4);
     this.scene.add(group);
   }
 
   private createLake(): void {
-    // GLOSSY bright cyan water - Fall Guys style!
+    // SOFT CEL-SHADED water - icy blue
     const water = new THREE.Mesh(
       new THREE.CircleGeometry(30, 32),
       new THREE.MeshStandardMaterial({ 
-        color: 0x44DDFF, 
-        metalness: 0.1, 
-        roughness: 0.2, 
+        color: 0xA8D8EA, 
+        metalness: 0, 
+        roughness: 0.5, 
         transparent: true, 
-        opacity: 0.9 
+        opacity: 0.85 
       })
     );
     water.rotation.x = -Math.PI / 2;
     water.position.set(-80, -1.5, 80);
     this.scene.add(water);
     
-    // Cute colorful rocks around the lake
-    // GLOSSY candy rocks - vibrant colors!
-    const rockColors = [0xFF77AA, 0xDD66FF, 0xAA88FF, 0x66CCFF];
+    // Soft blue-gray rocks - snowy feel
+    const rockColors = [0x9BB5C4, 0x8AAAB8, 0xA8C0CC, 0x98B0BC];
     for (let i = 0; i < 15; i++) {
       const angle = Math.random() * Math.PI * 2;
       const dist = 28 + Math.random() * 5;
       const rockColor = rockColors[i % rockColors.length];
       const rock = new THREE.Mesh(
         new THREE.SphereGeometry(0.5 + Math.random(), 8, 6),
-        new THREE.MeshStandardMaterial({ color: rockColor, roughness: 0.4, metalness: 0.1 })
+        new THREE.MeshStandardMaterial({ color: rockColor, roughness: 0.75, metalness: 0 })
       );
       rock.scale.set(1, 0.6, 1);
       rock.position.set(-80 + Math.cos(angle) * dist, this.getHeightAt(-80 + Math.cos(angle) * dist, 80 + Math.sin(angle) * dist) + 0.3, 80 + Math.sin(angle) * dist);
@@ -545,13 +572,13 @@ export class Terrain {
   }
 
   private createRiver(): void {
-    // GLOSSY bright cyan river - Fall Guys style!
+    // SOFT CEL-SHADED icy river
     const waterMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x44DDFF, 
-      metalness: 0.1, 
-      roughness: 0.2, 
+      color: 0xA8D8EA, 
+      metalness: 0, 
+      roughness: 0.5, 
       transparent: true, 
-      opacity: 0.9 
+      opacity: 0.85 
     });
 
     // Create winding river using multiple segments
@@ -959,6 +986,70 @@ export class Terrain {
       new THREE.Vector3(x, groundY + poleHeight / 2, z),
       new THREE.Vector3(10, poleHeight, 2)
     ));
+  }
+
+  // === DECORATIVE LAMP POSTS - Club Penguin Island style! ===
+  private createLampPost(x: number, z: number): void {
+    const groundY = this.getHeightAt(x, z);
+    const group = new THREE.Group();
+    
+    // Coral-colored pole
+    const poleMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0xD4736A, // Coral salmon
+      roughness: 0.6, 
+      metalness: 0 
+    });
+    
+    // Main pole
+    const pole = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.12, 0.18, 4, 8),
+      poleMaterial
+    );
+    pole.position.y = 2;
+    pole.castShadow = true;
+    group.add(pole);
+    
+    // Decorative base
+    const base = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.3, 0.4, 0.4, 8),
+      poleMaterial
+    );
+    base.position.y = 0.2;
+    base.castShadow = true;
+    group.add(base);
+    
+    // Lamp housing - warm yellow
+    const lampMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0xF5D89A, // Warm cream yellow
+      roughness: 0.5, 
+      metalness: 0,
+      emissive: 0xFFE4B0,
+      emissiveIntensity: 0.3
+    });
+    
+    // Lamp top
+    const lampTop = new THREE.Mesh(
+      new THREE.ConeGeometry(0.35, 0.3, 6),
+      poleMaterial
+    );
+    lampTop.position.y = 4.35;
+    group.add(lampTop);
+    
+    // Lamp body (hexagonal lantern)
+    const lampBody = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.25, 0.3, 0.5, 6),
+      lampMaterial
+    );
+    lampBody.position.y = 4;
+    group.add(lampBody);
+    
+    // Warm point light
+    const light = new THREE.PointLight(0xFFE4C4, 0.5, 8);
+    light.position.y = 4;
+    group.add(light);
+    
+    group.position.set(x, groundY, z);
+    this.scene.add(group);
   }
 
   public getColliders(): THREE.Box3[] {

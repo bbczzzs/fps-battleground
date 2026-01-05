@@ -32,7 +32,7 @@ export class Helicopter {
 
     const bodyMaterial = new THREE.MeshStandardMaterial({
       color: 0x7A9A7A,
-      roughness: 0.9,
+      roughness: 0.65,
       metalness: 0
     });
 
@@ -49,10 +49,10 @@ export class Helicopter {
     const cockpit = new THREE.Mesh(
       new THREE.SphereGeometry(1.2, 16, 16, 0, Math.PI),
       new THREE.MeshStandardMaterial({
-        color: 0xCFE9FF,
+        color: 0xB8D8E8,
         transparent: true,
         opacity: 0.7,
-        roughness: 0.85,
+        roughness: 0.4,
         metalness: 0
       })
     );

@@ -30,29 +30,29 @@ export class NetworkPlayer {
   private createPlayerMesh(): THREE.Group {
     const group = new THREE.Group();
     
-    // Body - GLOSSY candy style!
-    const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0xFF5566, roughness: 0.35, metalness: 0.1 });
+    // Body - SOFT CEL-SHADED style!
+    const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0xE8A5B0, roughness: 0.65, metalness: 0 });
     const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.4, 1, 8, 16), bodyMaterial);
     body.position.y = 1;
     body.castShadow = true;
     group.add(body);
 
-    // Head - glossy peachy skin
-    const headMaterial = new THREE.MeshStandardMaterial({ color: 0xFFDDCC, roughness: 0.4, metalness: 0 });
+    // Head - soft warm skin
+    const headMaterial = new THREE.MeshStandardMaterial({ color: 0xF5DDD0, roughness: 0.7, metalness: 0 });
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.25, 16, 16), headMaterial);
     head.position.y = 1.85;
     head.castShadow = true;
     group.add(head);
 
-    // Helmet - glossy candy
-    const helmetMaterial = new THREE.MeshStandardMaterial({ color: 0x77DD88, roughness: 0.35, metalness: 0.1 });
+    // Helmet - soft teal
+    const helmetMaterial = new THREE.MeshStandardMaterial({ color: 0x7AA88A, roughness: 0.65, metalness: 0 });
     const helmet = new THREE.Mesh(new THREE.SphereGeometry(0.28, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2), helmetMaterial);
     helmet.position.y = 1.9;
     helmet.castShadow = true;
     group.add(helmet);
 
-    // Arms - glossy
-    const armMaterial = new THREE.MeshStandardMaterial({ color: 0x88EE99, roughness: 0.35, metalness: 0.1 });
+    // Arms - soft teal
+    const armMaterial = new THREE.MeshStandardMaterial({ color: 0x8AB89A, roughness: 0.65, metalness: 0 });
     [-0.5, 0.5].forEach(x => {
       const arm = new THREE.Mesh(new THREE.CapsuleGeometry(0.12, 0.5, 4, 8), armMaterial);
       arm.position.set(x, 1.2, 0);
@@ -65,13 +65,13 @@ export class NetworkPlayer {
     const weaponGroup = new THREE.Group();
     const gunBody = new THREE.Mesh(
       new THREE.BoxGeometry(0.08, 0.08, 0.6),
-      new THREE.MeshStandardMaterial({ color: 0x6688AA, roughness: 0.4, metalness: 0.1 })
+      new THREE.MeshStandardMaterial({ color: 0x7A8A9A, roughness: 0.7, metalness: 0 })
     );
     weaponGroup.add(gunBody);
     
     const gunStock = new THREE.Mesh(
       new THREE.BoxGeometry(0.06, 0.12, 0.2),
-      new THREE.MeshStandardMaterial({ color: 0xFFAA66, roughness: 0.4, metalness: 0 })
+      new THREE.MeshStandardMaterial({ color: 0xC4A080, roughness: 0.7, metalness: 0 })
     );
     gunStock.position.z = -0.35;
     weaponGroup.add(gunStock);
